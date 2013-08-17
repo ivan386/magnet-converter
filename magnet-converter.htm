@@ -1,0 +1,394 @@
+<!doctype html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Конвертер магнита</title>
+		<style>
+			.btih, .bitprint, .md5, .sha1, .tree_tiger, 
+			.ed2k, a#link, .urn, .url, .xurl,
+			.hurn, .hurl, .hxurl
+			{display: none;}
+			
+			a#link[href*="=urn:btih:"] ~ .btih,
+			a#link[href*="=urn:bitprint:"] ~ .bitprint,
+			a#link[href*="=urn:sha1:"] ~ .sha1,
+			a#link[href*="=urn:tree:tiger:"] ~ .tree_tiger,
+			a#link[href*="=urn:ed2k:"] ~ .ed2k,
+			a#link[href*="=urn:ed2khash:"] ~ .ed2k,
+			a#link[href*="as="] ~ #direct_links > .url,
+			a#link[href*="xs="] ~ #p2p_links > .xurl{
+				display: list-item;
+				position: relative;
+				left: 20px;
+			}
+			
+			a#link[href*="=urn:"] ~ .hurn,
+			a#link[href*="as="] ~ .hurl,
+			a#link[href*="xs="] ~ .hxurl{
+				display: block;
+			}
+			
+			a#link[href]{
+				display: block;
+				text-align: center;
+				border: solid green 1px;
+				padding-top: 1em;
+				padding-bottom: 1em;
+				border-radius: 1em;
+				background-color: #9E9;
+				color: black;
+				text-decoration: none;
+				font-size: xx-large;
+			}
+			#magnet_mix{width: 100%;}
+		</style>
+	</head>
+	<body>
+		<noscript>!Для правильной работы необходимо включить JavaScript!</noscript>
+		<a id="link">Скачать (Полный магнит)</a>
+		<script>
+			if (window.location.hash.substr(1,8) == "magnet:?"){
+				setTimeout(function() {window.location.replace(window.location.hash.substr(1))}, 0);
+			}
+		</script>
+		<p class="urn">Короткие магниты:</p>
+		<a class="torrent_magnet btih">Магнит для Торрента</a>
+		<a class="dc_magnet bitprint tree_tiger">Магнит для DC++</a>
+		<a class="ed2k_link ed2k">Ссылка для eMule</a>
+		<p class="hurl">Прямые ссылки:</p>
+		<div class="hurl" id="direct_links"></div>
+		<p class="hxurl">P2P источники:</p>
+		<div class="hxurl" id="p2p_links"></div>
+		<p class="hurn">Сторонние сервисы:</p>
+		
+		<a target="_blank" class="virus_check bitprint sha1 md5">Проверка на вирусы</a>
+		<a target="_blank" class="dc_search bitprint tree_tiger">Поиск в сети DirectConect (DC)</a>
+		<a target="_blank" class="bitzi_lookup bitprint sha1">Информация на Bitzi</a>
+		<a target="_blank" class="btdigg_search btih">Информация о торренте</a>
+		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k</a>
+		
+		<p>В поле ниже можно скопировать магниты на один и тотже файл из разних p2p клиентов (Например из: <a href="http://shareaza.sourceforge.net/">Shareaza</a>, <a href="http://dcplusplus.sourceforge.net/">DC++</a> и <a href="http://www.utorrent.com/">uTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="http://www.emule-project.net/">eMule</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p> <button onclick="make_magnet_on_click()">Конвертировать</button> <button onclick="example_on_click()">Вставить пример</button>
+		<textarea rows="20" id="magnet_mix"></textarea>
+		
+		
+		<script>
+			
+			function try_decode(data){
+				try{
+					data = decodeURIComponent(data);
+				}catch(e){console.error(e)}
+				return data;
+			}
+			
+			function parse_magnet(params, file){
+				if (!file) file = {}
+				params.replace(/([a-z0-9\.]+)=((([a-z0-9\.]+:)*)([^&]+))&?/gmi,
+				function(all, name, data, urn, _, urn_data){
+					data = try_decode(data)
+					switch (name){
+						case "dn":
+							file.name = data;
+							break;
+						case "xl":
+							file.size = data;
+							break;
+						case "tr":
+							if (!file.trackers) file.trackers = [];
+							file.trackers.push(data);
+							break;
+						case "as":
+							if (!file.url) file.url = [];
+							file.url.push(data);
+							break;
+						case "xs":
+							if (!file.xurl) file.xurl = [];
+							file.xurl.push(data);
+							break;
+						case "xt":
+							if (!file.hash) file.hash = {};
+							switch (urn){
+								case "urn:sha1:":
+									file.hash.sha1 = urn_data;
+								break;
+								case "urn:ed2k:":
+								case "urn:ed2khash:":
+									file.hash.ed2k = urn_data;
+								break;
+								case "urn:aich:":
+									file.hash.aich = urn_data;
+								break;
+								case "urn:btih:":
+									file.hash.btih = urn_data;
+								break;
+								case "urn:tree:tiger:":
+									file.hash.tree_tiger = urn_data;
+								break;
+								case "urn:bitprint:":
+									var sha1tth = urn_data.split(".");
+									if (sha1tth && sha1tth.length == 2){
+										file.hash.sha1 = sha1tth[0];
+										file.hash.tree_tiger = sha1tth[1];
+										file.hash.bitprint = urn_data;
+									}
+								break;
+							}
+						break;
+					}
+				})
+				return file;
+			}
+			
+			function torrent_magnet(file){
+				var magnet = ["magnet:?"]
+				if (file && file.hash && file.hash.btih) {
+					magnet.push("xt=urn:btih:")
+					magnet.push(encodeURIComponent(file.hash.btih))
+				}else return undefined;
+				if (file.name) {
+					magnet.push("&dn=")
+					magnet.push(encodeURIComponent(file.name))
+				}
+				if (file.trackers) {
+					for (var i=0; i < file.trackers.length; i++){
+						magnet.push("&tr=")
+						magnet.push(encodeURIComponent(file.trackers[i]))
+					}
+				}
+				return magnet.join("")
+			}
+			
+			function dc_magnet(file){
+				var magnet = ["magnet:?"]
+				if (file && file.hash && file.hash.tree_tiger) {
+					magnet.push("xt=urn:tree:tiger:")
+					magnet.push(file.hash.tree_tiger)
+				}else return;
+				if (file.size) {
+					magnet.push("&xl=")
+					magnet.push(encodeURIComponent(file.size))
+				}
+				if (file.name) {
+					magnet.push("&dn=")
+					magnet.push(encodeURIComponent(file.name))
+				}
+				if (file.xurl){
+					for (var i=0; i < file.xurl.length; i++){
+						magnet.push("&xs=")
+						magnet.push(file.xurl[i])
+					}
+				}
+				return magnet.join("")
+			}
+			
+			function ed2k_link(file){
+				link = ["ed2k://|file"]
+				if (file && file.hash && file.name && file.size && file.hash.ed2k) {
+					link.push(encodeURIComponent(file.name))
+					link.push(file.size)
+					link.push(file.hash.ed2k)
+					if (file.hash.aich){
+						link.push(["h=", file.hash.aich].join(""))
+					}
+					link.push("/")
+					return link.join("|")
+				}
+			}
+			
+			function full_magnet(file){
+				var magnet = ["magnet:?"]
+				var amp = false
+				if (!file) return;
+				if (file.hash && file.hash.ed2k){
+					magnet.push("xt=urn:ed2k:")
+					magnet.push(file.hash.ed2k)
+					amp = true;
+				}
+				if (file.size) {
+					if (amp) magnet.push("&"); else amp = true;
+					magnet.push("xl=")
+					magnet.push(encodeURIComponent(file.size))
+				}
+				if (file.name) {
+					if (amp) magnet.push("&"); else amp = true;
+					magnet.push("dn=")
+					magnet.push(encodeURIComponent(file.name))
+				}
+				if (file.hash){
+					if (file.hash.aich){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("xt=urn:aich:")
+						magnet.push(file.hash.aich)
+					}
+					if (file.hash.sha1 && file.hash.tree_tiger){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("xt=urn:bitprint:")
+						magnet.push(file.hash.sha1)
+						magnet.push(".")
+						magnet.push(file.hash.tree_tiger)
+					}else if(file.hash.sha1){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("xt=urn:sha1:")
+						magnet.push(file.hash.sha1)
+					}else if(file.hash.tree_tiger){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("xt=urn:tree:tiger:")
+						magnet.push(file.hash.tree_tiger)
+					}
+					if (file.hash.btih){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("xt=urn:btih:")
+						magnet.push(file.hash.btih)
+					}
+				}
+				if (file.trackers){
+					for (var i=0; i < file.trackers.length; i++){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("tr=")
+						magnet.push(encodeURIComponent(file.trackers[i]))
+					}
+				}
+				if (file.url){
+					for (var i=0; i < file.url.length; i++){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("as=")
+						magnet.push(encodeURIComponent(file.url[i]))
+					}
+				}
+				if (file.xurl){
+					for (var i=0; i < file.xurl.length; i++){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("xs=")
+						magnet.push(file.xurl[i])
+					}
+				}
+				return magnet.join("")
+			}
+			
+			function set_links(class_name, href){
+				if (href){
+					var links = document.getElementsByClassName(class_name)
+					for (var i=0; i < links.length; i++)
+						links[i].href = href;
+				}
+			}
+			
+			function parse_text(text){
+				var ere = /ed2k:\/\/\|file\|([^\|]+)\|([0-9]+)\|([a-z0-9]+)\|(h=([a-z0-9]+)\|){0,1}\//i
+				var mre = /[^\s]*magnet:\?([^\s]+)/gmi
+				var hre = /https?:\/\/[\S]*?\/([^\s\/]+)$/gmi
+				var dre = /dchub:\/\/[\S]+/gmi
+				var file = {}
+				text.replace(ere, function(all, name, size, hash, _, aich){
+					file.name = try_decode(name);
+					file.size = size;
+					(file.hash = file.hash || []).ed2k = hash;
+					file.hash.aich = aich;
+					return "";
+				}).replace(mre, function (all, params){
+					parse_magnet(params, file);
+					return "";
+				}).replace(hre, function (url, name){
+					(file.url = file.url || []).push(url)
+					if (!file.name && name) file.name = name;
+					return "";
+				}).replace(dre, function (xurl){
+					(file.xurl = file.xurl || []).push(xurl)
+					return "";
+				});
+				return file
+			}
+			
+			function make_link(part, hash){
+				if (hash) return [part, hash].join("")
+			}
+			
+			function base32_to_hex(base32){
+				//ToDo
+				
+				return base32;
+			}
+			
+			function set_urls(urls, container_id, urls_class){
+				if (!urls) return;
+				var container = document.getElementById(container_id)
+				var new_container = document.createElement(container.tagName)
+				for (var i=0; i < urls.length; i++){
+					var link =  document.createElement("a")
+					var name = document.createTextNode(urls[i])
+					link.href = urls[i]
+					link.className = urls_class
+					link.appendChild(name)
+					new_container.appendChild(link)
+				}
+				container.parentNode.replaceChild(new_container, container)
+				new_container.id = container.id
+				new_container.className = container.className
+				
+			}
+
+			function set_file(file){
+				set_links("torrent_magnet", torrent_magnet(file))
+				set_links("dc_magnet", dc_magnet(file))
+				set_links("ed2k_link", ed2k_link(file))
+				
+				if (file.hash){
+					set_links("virus_check", 
+						make_link("http://www.virustotal.com/latest-report.html?resource=", base32_to_hex(file.hash.sha1)))
+					set_links("dc_search", 
+								make_link("http://dc.proisk.com?tiger=", file.hash.tree_tiger))
+					set_links("bitzi_lookup", 
+								make_link("http://bitzi.com/lookup/", 
+									file.hash.bitprint 
+									|| file.hash.sha1 			
+									||	(file.hash.tree_tiger?["tree:tiger:",file.hash.tree_tiger].join(""):false)
+									||	(file.hash.ed2k?["ed2k:",file.hash.ed2k].join(""):false)					)
+							)
+					set_links("btdigg_search", 
+								make_link("http://btdigg.org/search?info_hash=", file.hash.btih))
+					set_links("ed2k-stats", 
+						make_link("http://ed2k.shortypower.org/?hash=", file.hash.ed2k))
+				}
+				set_urls(file.url,"direct_links", "url")
+				set_urls(file.xurl,"p2p_links", "xurl")
+			}
+			
+			var hash = document.location.hash
+			var start = hash.indexOf("magnet:?")
+			if (start > 0) {
+				var magnet = hash.substr(start)
+				document.getElementById("magnet_mix").value = magnet
+				document.getElementById("link").href = magnet
+				file = parse_magnet(magnet.substr(8))
+				set_file(file)
+			}
+			
+			function make_magnet_on_click(){
+				var magnet_mix = document.getElementById("magnet_mix")
+				var file = parse_text(magnet_mix.value)
+				var magnet = full_magnet(file)
+				document.location.hash = magnet
+				document.getElementById("link").href = magnet
+				magnet_mix.value = magnet
+				set_file(file)
+			}
+			
+			function example_on_click(){
+				document.getElementById("magnet_mix").value = [
+				"magnet:?xt=urn:btih:DEDDE4C0651618344BA59C0B1F34BEC6F80AD925&dn=ruwiki-20130813-pages-meta-current.xml.bz2&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.publicbt.com%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.ccc.de%3A80%2Fannounce",
+				"magnet:?xt=urn:tree:tiger:c2pbjzpghbkvkws5iteqszsvztoahhcwnh7m4iy&xl=2551960350&dn=ruwiki-20130813-pages-meta-current.xml.bz2",
+				"ed2k://|file|ruwiki-20130813-pages-meta-current.xml.bz2|2551960350|a4126e7f47ff5ddd8ce1d318bf515c28|h=rddj75fwej7qklb6wontpk56bu35focw|/",
+				"http://dumps.wikimedia.org/ruwiki/20130813/ruwiki-20130813-pages-meta-current.xml.bz2",
+				"dchub://allavtovo.ru"
+				].join("\n\n")
+			}
+		</script>
+		
+		<p>Данная страничка использует информацию переданную ей в url. Таким образом на сайте не хранится никакая иформация о файлах на которые эта страничка может ссылаться.</p>
+		
+		<p>Вы можете скопировать данную страницу или её чась и разместить у себя на сайте. Также вы можете использовать данные любым другим образом.</p>
+		<span style="display: none">
+			<plaintext>
+			</plaintext>
+		</span>
+	</body>
+</html>
