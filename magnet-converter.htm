@@ -16,6 +16,7 @@
 			a#link[href*="=urn:ed2k:"] ~ .ed2k,
 			a#link[href*="=urn:ed2khash:"] ~ .ed2k,
 			a#link[href*="as="] ~ #direct_links > .url,
+			a#link[href*="ws="] ~ #direct_links > .url,
 			a#link[href*="xs="] ~ #p2p_links > .xurl{
 				display: list-item;
 				position: relative;
@@ -24,6 +25,7 @@
 			
 			a#link[href*="=urn:"] ~ .hurn,
 			a#link[href*="as="] ~ .hurl,
+			a#link[href*="ws="] ~ .hurl,
 			a#link[href*="xs="] ~ .hxurl{
 				display: block;
 			}
@@ -65,6 +67,7 @@
 		<a target="_blank" class="dc_search bitprint tree_tiger">Поиск в сети DirectConect (DC)</a>
 		<a target="_blank" class="bitzi_lookup bitprint sha1">Информация на Bitzi</a>
 		<a target="_blank" class="btdigg_search btih">Информация о торренте</a>
+		<a target="_blank" class="torcache_torrent btih">Скачать торрент из Torcache</a>
 		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k</a>
 		
 		<p>В поле ниже можно скопировать магниты на один и тотже файл из разних p2p клиентов (Например из: <a href="http://shareaza.sourceforge.net/">Shareaza</a>, <a href="http://dcplusplus.sourceforge.net/">DC++</a> и <a href="http://www.utorrent.com/">uTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="http://www.emule-project.net/">eMule</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p> <button onclick="make_magnet_on_click()">Конвертировать</button> <button onclick="example_on_click()">Вставить пример</button>
@@ -100,6 +103,7 @@
 							file.trackers.push(data);
 							break;
 						case "as":
+						case "ws":
 							if (!file.url) file.url = [];
 							file.url.push(data);
 							break;
@@ -160,6 +164,12 @@
 						magnet.push(encodeURIComponent(file.trackers[i]))
 					}
 				}
+				if (file.url){
+					for (var i=0; i < file.url.length; i++){
+						magnet.push("&ws=")
+						magnet.push(encodeURIComponent(file.url[i]))
+					}
+				}
 				return magnet.join("")
 			}
 			
@@ -193,7 +203,12 @@
 					link.push(file.size)
 					link.push(file.hash.ed2k)
 					if (file.hash.aich){
-						link.push(["h=", file.hash.aich].join(""))
+						link.push("h=" + file.hash.aich)
+					}
+					if (file.url){
+						for (var i=0; i < file.url.length; i++){
+							link.push("s=" + encodeURIComponent(file.url[i]))
+						}
 					}
 					link.push("/")
 					return link.join("|")
@@ -256,7 +271,7 @@
 				if (file.url){
 					for (var i=0; i < file.url.length; i++){
 						if (amp) magnet.push("&"); else amp = true;
-						magnet.push("as=")
+						magnet.push("ws=")
 						magnet.push(encodeURIComponent(file.url[i]))
 					}
 				}
@@ -309,13 +324,14 @@
 				return file
 			}
 			
-			function make_link(part, hash){
-				if (hash) return [part, hash].join("")
+			function make_link(part, hash, part2){
+				if (hash) return [part, hash, part2].join("")
 			}
 			
 				
 			function base32_to_hex(base32){
 				// http://tools.ietf.org/html/rfc4648
+				if (!base32) return "";
 				var number = 0
 				var bit_pos = 0
 				var detector = /[2-7a-z]/gmi
@@ -378,6 +394,8 @@
 							)
 					set_links("btdigg_search", 
 								make_link("http://btdigg.org/search?info_hash=", file.hash.btih))
+					set_links("torcache_torrent", 
+								make_link("http://torcache.net/torrent/", file.hash.btih.toUpperCase() , ".torrent"))
 					set_links("ed2k-stats", 
 						make_link("http://ed2k.shortypower.org/?hash=", file.hash.ed2k))
 				}
