@@ -43,11 +43,12 @@
 				font-size: xx-large;
 			}
 			#magnet_mix{width: 100%;}
+			#file-size{quotes: "(" ")"};
 		</style>
 	</head>
 	<body>
 		<noscript>!Для правильной работы необходимо включить JavaScript!</noscript>
-		<a id="link">Скачать (Полный магнит)</a>
+		<a id="link">Скачать <q id="file-name"></q><q id="file-size"></q> (Полный магнит)</a>
 		<script>
 			if (window.location.hash.substr(1,8) == "magnet:?"){
 				setTimeout(function() {window.location.replace(window.location.hash.substr(1))}, 0);
@@ -376,6 +377,8 @@
 			}
 
 			function set_file(file){
+				document.getElementById("file-name").textContent = file.name
+				document.getElementById("file-size").textContent = file.size
 				set_links("torrent_magnet", torrent_magnet(file))
 				set_links("dc_magnet", dc_magnet(file))
 				set_links("ed2k_link", ed2k_link(file))
