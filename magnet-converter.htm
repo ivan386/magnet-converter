@@ -58,6 +58,7 @@
 		<a class="torrent_magnet btih">Магнит для Торрента</a>
 		<a class="dc_magnet bitprint tree_tiger">Магнит для DC++</a>
 		<a class="ed2k_link ed2k">Ссылка для eMule</a>
+		<a class="micro_torrent bitprint sha1">Микро-торрент</a>
 		<p class="hurl">Прямые ссылки:</p>
 		<div class="hurl" id="direct_links"></div>
 		<p class="hxurl">P2P источники:</p>
@@ -293,11 +294,15 @@
 				return magnet.join("")
 			}
 			
-			function set_links(class_name, href){
+			function set_links(class_name, href, download){
 				if (href){
 					var links = document.getElementsByClassName(class_name)
 					for (var i=0; i < links.length; i++)
-						links[i].href = href;
+					{
+						links[i].setAttribute("href", href)
+						if (download)
+							links[i].setAttribute("download", download)
+					}
 				}
 			}
 			
@@ -329,6 +334,66 @@
 			
 			function make_link(part, hash, part2){
 				if (hash) return [part, hash, part2].join("")
+			}
+			
+			function raw_length(encodedURI){
+				var count = 0;
+				var index = 0;
+				for (index = encodedURI.indexOf("%"); index>=0 && (++count) ; index = encodedURI.indexOf("%", index+1));
+				return encodedURI.length-count*2
+			}
+			
+			function push_string(string, to_list){
+				to_list.push(raw_length(string))
+				to_list.push(":")
+				to_list.push(string)
+			}
+			
+			function make_micro_torrent(file){
+				if (file.name && file.size && file.hash && file.hash.sha1){
+					var torrent = ["data:application/x-bittorrent;,d"]
+					if (file.trackers && file.trackers.length>0){
+						torrent.push("8:announce")
+						push_string(file.trackers[0], torrent)
+						if (file.trackers.length>1){
+							torrent.push("13:announce-listl")
+							for (i = 1; file.trackers.length>i; i++){
+								var tracker = encodeURIComponent(decodeURIComponent(file.trackers[i]))
+								push_string(tracker, torrent)
+							}
+							torrent.push("e")
+						}
+					}
+					torrent.push("4:infod")
+					torrent.push("6:length")
+					torrent.push("i")
+					torrent.push(file.size)
+					torrent.push("e")
+					torrent.push("4:name")
+					var name = encodeURIComponent(file.name)
+					push_string(name, torrent)
+					torrent.push("12:piece%20length")
+					torrent.push("i")
+					torrent.push(file.size)
+					torrent.push("e")
+					torrent.push("6:pieces")
+					var sha1 = file.hash.sha1
+					if (sha1.length < 40)
+						sha1 = base32_to_hex(sha1);
+					sha1 = sha1.replace(/[0-9A-Fa-f]{2}/g,"%$&")
+					push_string(sha1, torrent)
+					torrent.push("e")
+					if (file.url && file.url.length>0){
+						torrent.push("8:url-listl")
+						for (i = 0; file.url.length>i; i++){
+							var url = encodeURIComponent(decodeURIComponent(file.url[i]))
+							push_string(url, torrent)
+						}
+						torrent.push("e")
+					}
+					torrent.push("e")
+					return torrent.join("")
+				}
 			}
 			
 				
@@ -384,6 +449,7 @@
 				set_links("torrent_magnet", torrent_magnet(file))
 				set_links("dc_magnet", dc_magnet(file))
 				set_links("ed2k_link", ed2k_link(file))
+				set_links("micro_torrent", make_micro_torrent(file), file.name + ".torrent")
 				
 				if (file.hash){
 					set_links("virus_check", 
@@ -397,10 +463,12 @@
 									||	(file.hash.tree_tiger?["tree:tiger:",file.hash.tree_tiger].join(""):false)
 									||	(file.hash.ed2k?["ed2k:",file.hash.ed2k].join(""):false)					)
 							)
-					set_links("btdigg_search", 
-								make_link("http://btdigg.org/search?info_hash=", file.hash.btih))
-					set_links("torcache_torrent", 
-								make_link("http://torcache.net/torrent/", file.hash.btih.toUpperCase() , ".torrent"))
+					if (file.hash.btih){
+						set_links("btdigg_search", 
+									make_link("http://btdigg.org/search?info_hash=", file.hash.btih))
+						set_links("torcache_torrent", 
+									make_link("http://torcache.net/torrent/", file.hash.btih.toUpperCase() , ".torrent"))
+					}
 					set_links("ed2k-stats", 
 						make_link("http://ed2k.shortypower.org/?hash=", file.hash.ed2k))
 				}
