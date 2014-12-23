@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>Конвертер магнита</title>
+		<title>Конвертер магнита (magnet converter)</title>
 		<style>
 			.btih, .bitprint, .md5, .sha1, .tree_tiger, 
 			.ed2k, a#link, .urn, .url, .xurl,
@@ -48,33 +48,34 @@
 	</head>
 	<body>
 		<noscript>!Для правильной работы необходимо включить JavaScript!</noscript>
-		<a id="link">Скачать <q id="file-name"></q><q id="file-size"></q> (Полный магнит)</a>
+		<a id="link">Скачать/Download <q id="file-name"></q><q id="file-size"></q> (Полный магнит/Full magnet)</a>
 		<script>
 			if (window.location.hash.substr(1,8) == "magnet:?"){
 				setTimeout(function() {window.location.replace(window.location.hash.substr(1))}, 0);
 			}
 		</script>
-		<p class="urn">Короткие магниты:</p>
-		<a class="torrent_magnet btih">Магнит для Торрента</a>
-		<a class="dc_magnet bitprint tree_tiger">Магнит для DC++</a>
-		<a class="ed2k_link ed2k">Ссылка для eMule</a>
-		<a class="micro_torrent bitprint sha1">Микро-торрент</a>
-		<p class="hurl">Прямые ссылки:</p>
+		<p class="urn">Магниты и ссылки (Magnets and links):</p>
+		<a class="torrent_magnet btih">Магнит для Торрента (Magnet for Torrent)</a>
+		<a class="dc_magnet bitprint tree_tiger">Магнит для DC++ (Magnet for DC++)</a>
+		<a class="shareaza_magnet bitprint tree_tiger sha1 ed2k btih">Магнит для Shareaza (Magnet for Shareaza)</a>
+		<a class="ed2k_link ed2k">Ссылка для eMule (Link for eMule)</a>
+		<a class="micro_torrent bitprint sha1">Микро-торрент (Micro Torrent)</a>
+		<p class="hurl">Прямые ссылки (direct links):</p>
 		<div class="hurl" id="direct_links"></div>
-		<p class="hxurl">P2P источники:</p>
+		<p class="hxurl">P2P источники (p2p sources):</p>
 		<div class="hxurl" id="p2p_links"></div>
 		
 		
 		<p class="hurn">Сторонние сервисы:</p>
 		
-		<a target="_blank" class="virus_check bitprint sha1 md5">Проверка на вирусы</a>
-		<a target="_blank" class="dc_search bitprint tree_tiger">Поиск в сети DirectConect (DC)</a>
-		<a target="_blank" class="bitzi_lookup bitprint sha1">Информация на Bitzi</a>
-		<a target="_blank" class="btdigg_search btih">Информация о торренте</a>
-		<a target="_blank" class="torcache_torrent btih">Скачать торрент из Torcache</a>
-		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k</a>
+		<a target="_blank" class="virus_check bitprint sha1 md5">Проверка на вирусы (Virus check)</a>
+		<a target="_blank" class="dc_search bitprint tree_tiger">Поиск в сети DirectConnect (DC) (Search in DirectConnect)</a>
+		<a target="_blank" class="bitzi_lookup bitprint sha1">Информация на Bitzi (File info from Bitzi)</a>
+		<a target="_blank" class="btdigg_search btih">Информация о торренте (Torrent info)</a>
+		<a target="_blank" class="torcache_torrent btih">Скачать торрент из Torcache (Download torrent file from Torcache)</a>
+		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k (Ed2k file statistic)</a>
 		
-		<p>В поле ниже можно скопировать магниты на один и тотже файл из разних p2p клиентов (Например из: <a href="http://shareaza.sourceforge.net/">Shareaza</a>, <a href="http://dcplusplus.sourceforge.net/">DC++</a> и <a href="http://www.utorrent.com/">uTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="http://www.emule-project.net/">eMule</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p> <button onclick="make_magnet_on_click()">Конвертировать</button> <button onclick="example_on_click()">Вставить пример</button>
+		<p>В поле ниже можно скопировать магниты на один и тотже файл из разних p2p клиентов (Например из: <a href="http://shareaza.sourceforge.net/">Shareaza</a>, <a href="http://dcplusplus.sourceforge.net/">DC++</a> и <a href="http://www.utorrent.com/">uTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="http://www.emule-project.net/">eMule</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p> <button onclick="make_magnet_on_click()">Конвертировать(Convert)</button> <button onclick="example_on_click()">Вставить пример(Insert example)</button>
 		<textarea rows="20" id="magnet_mix"></textarea>
 		
 		
@@ -219,7 +220,7 @@
 				}
 			}
 			
-			function full_magnet(file){
+			function full_magnet(file, as){
 				var magnet = ["magnet:?"]
 				var amp = false
 				if (!file) return;
@@ -275,7 +276,10 @@
 				if (file.url){
 					for (var i=0; i < file.url.length; i++){
 						if (amp) magnet.push("&"); else amp = true;
-						magnet.push("ws=")
+						if (as || !(file.hash && file.hash.btih))
+							magnet.push("as=");
+						else
+							magnet.push("ws=");
 						magnet.push(encodeURIComponent(file.url[i]))
 					}
 				}
@@ -448,8 +452,9 @@
 				document.getElementById("file-size").textContent = file.size
 				set_links("torrent_magnet", torrent_magnet(file))
 				set_links("dc_magnet", dc_magnet(file))
+				set_links("shareaza_magnet", full_magnet(file, true))
 				set_links("ed2k_link", ed2k_link(file))
-				set_links("micro_torrent", make_micro_torrent(file), file.name + ".torrent")
+				set_links("micro_torrent", make_micro_torrent(file), file.name + ".micro.torrent")
 				
 				if (file.hash){
 					set_links("virus_check", 
@@ -498,10 +503,10 @@
 			
 			function example_on_click(){
 				document.getElementById("magnet_mix").value = [
-				"magnet:?xt=urn:btih:DEDDE4C0651618344BA59C0B1F34BEC6F80AD925&dn=ruwiki-20130813-pages-meta-current.xml.bz2&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.publicbt.com%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.ccc.de%3A80%2Fannounce",
-				"magnet:?xt=urn:tree:tiger:c2pbjzpghbkvkws5iteqszsvztoahhcwnh7m4iy&xl=2551960350&dn=ruwiki-20130813-pages-meta-current.xml.bz2",
-				"ed2k://|file|ruwiki-20130813-pages-meta-current.xml.bz2|2551960350|a4126e7f47ff5ddd8ce1d318bf515c28|h=rddj75fwej7qklb6wontpk56bu35focw|/",
-				"http://dumps.wikimedia.org/ruwiki/20130813/ruwiki-20130813-pages-meta-current.xml.bz2",
+				"magnet:?xt=urn:btih:CYST3G7LBX2J7YYLVTDC5IILUY4TT4HY&xl=2981763794&dn=ruwiki-20141114-pages-meta-current.xml.bz2&tr=http%3A//url2torrent.net%3A6970/announce",
+				"ed2k://|file|ruwiki-20141114-pages-meta-current.xml.bz2|2981763794|0218392e98873112284de6913efee0df|/",
+				"magnet:?xt=urn:bitprint:U24IYRP3WTLRY5KJH7SACBLFT2LAM62U.JNOANHGPELY63I2OMSPQ3J73AS2P4AWB5MTBJCQ&xl=2981763794&dn=ruwiki-20141114-pages-meta-current.xml.bz2",
+				"http://dumps.wikimedia.org/ruwiki/20141114/ruwiki-20141114-pages-meta-current.xml.bz2",
 				"dchub://allavtovo.ru"
 				].join("\n\n")
 			}
