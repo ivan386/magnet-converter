@@ -88,7 +88,7 @@
 		<a target="_blank" class="torcache_torrent btih">Скачать торрент из Torcache (Download torrent file from Torcache)</a>
 		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k (Ed2k file statistic)</a>
 		
-		<p>В поле ниже можно скопировать магниты на один и тотже файл из разних p2p клиентов (Например из: <a href="http://shareaza.sourceforge.net/">Shareaza</a>, <a href="http://dcplusplus.sourceforge.net/">DC++</a> и <a href="http://www.utorrent.com/">uTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="http://www.emule-project.net/">eMule</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p> <button onclick="make_magnet_on_click()">Конвертировать(Convert)</button> <button onclick="example_on_click()">Вставить пример(Insert example)</button><span id="demo"> &lt;- Нажмите "Вставить пример" а потом "Конвертировать" для демонстрации работы страницы.</span>
+		<p>В поле ниже можно скопировать магниты на один и тотже файл из разних p2p клиентов (Например из: <a href="http://shareaza.sourceforge.net/">Shareaza</a>, <a href="http://dcplusplus.sourceforge.net/">DC++</a> и <a href="http://www.utorrent.com/">uTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="http://www.emule-project.net/">eMule</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p><label><input type="checkbox" id="freebase_be"/>Добавить freebase.be кеш (Add freebase.be cache)</label><a href="http://freebase.be/g2cache.php">?</a><br/> <button onclick="make_magnet_on_click()">Конвертировать(Convert)</button>   <button onclick="example_on_click()">Вставить пример(Insert example)</button><span id="demo"> &lt;- Нажмите "Вставить пример" а потом "Конвертировать" для демонстрации работы страницы.</span>
 		<textarea rows="20" id="magnet_mix"></textarea>
 		
 		
@@ -507,6 +507,12 @@
 			function make_magnet_on_click(){
 				var magnet_mix = document.getElementById("magnet_mix")
 				var file = parse_text(magnet_mix.value)
+				var freebase = document.getElementById("freebase_be")
+				if (freebase.checked && file.hash && file.hash.sha1){
+					if (!file.xurl)
+						file.xurl = [];
+					file.xurl.push("http://cache.freebase.be/"+file.hash.sha1.toLowerCase());
+				}
 				var magnet = full_magnet(file)
 				document.location.hash = magnet
 				document.getElementById("link").href = magnet
