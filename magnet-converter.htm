@@ -9,6 +9,8 @@
 			.hurn, .hurl, .hxurl
 			{display: none;}
 			
+			a#link[href*="magnet:?"] ~ #demo{display: none}
+			
 			a#link[href*="=urn:btih:"] ~ .btih,
 			a#link[href*="=urn:bitprint:"] ~ .bitprint,
 			a#link[href*="=urn:sha1:"] ~ .sha1,
@@ -47,6 +49,17 @@
 		</style>
 	</head>
 	<body>
+		<!--noscript-->
+		<script>document.write("\x3C!--")</script>
+		<p>
+		Для того чтобы открыть магнет-ссылку сотрите в адресной строке выше(где адрес этой страницы) часть до #magnet:?... вместе с # и нажмите Enter(на клавиатуре) или ->(рядом с адресной строкой)
+		</p>
+		<p>
+		Например должно остаться:<br>
+		<code>magnet:?xt=urn:btih:CYST3G7LBX2J7YYLVTDC5IILUY4TT4HY&xl=2981763794&dn=ruwiki-20141114-pages-meta-current.xml.bz2&tr=http%3A//url2torrent.net%3A6970/announce</code>
+		</p>
+		
+		<!--/noscript-->
 		<noscript>!Для правильной работы необходимо включить JavaScript!</noscript>
 		<a id="link">Скачать/Download <q id="file-name"></q><q id="file-size"></q> (Полный магнит/Full magnet)</a>
 		<script>
@@ -75,7 +88,7 @@
 		<a target="_blank" class="torcache_torrent btih">Скачать торрент из Torcache (Download torrent file from Torcache)</a>
 		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k (Ed2k file statistic)</a>
 		
-		<p>В поле ниже можно скопировать магниты на один и тотже файл из разних p2p клиентов (Например из: <a href="http://shareaza.sourceforge.net/">Shareaza</a>, <a href="http://dcplusplus.sourceforge.net/">DC++</a> и <a href="http://www.utorrent.com/">uTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="http://www.emule-project.net/">eMule</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p> <button onclick="make_magnet_on_click()">Конвертировать(Convert)</button> <button onclick="example_on_click()">Вставить пример(Insert example)</button>
+		<p>В поле ниже можно скопировать магниты на один и тотже файл из разних p2p клиентов (Например из: <a href="http://shareaza.sourceforge.net/">Shareaza</a>, <a href="http://dcplusplus.sourceforge.net/">DC++</a> и <a href="http://www.utorrent.com/">uTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="http://www.emule-project.net/">eMule</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p> <button onclick="make_magnet_on_click()">Конвертировать(Convert)</button> <button onclick="example_on_click()">Вставить пример(Insert example)</button><span id="demo"> &lt;- Нажмите "Вставить пример" а потом "Конвертировать" для демонстрации работы страницы.</span>
 		<textarea rows="20" id="magnet_mix"></textarea>
 		
 		
