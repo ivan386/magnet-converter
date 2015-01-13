@@ -5,11 +5,13 @@
 		<title>Конвертер магнита (magnet converter)</title>
 		<style>
 			.btih, .bitprint, .md5, .sha1, .tree_tiger, 
-			.ed2k, a#link, .urn, .url, .xurl,
-			.hurn, .hurl, .hxurl
+			.ed2k, a#link, .urn, .url, .xurl, durl,
+			.hurn, .hurl, .hxurl, .hdurls, .ifmagnet
 			{display: none;}
 			
 			a#link[href*="magnet:?"] ~ #demo{display: none}
+			
+			a#link[href*="magnet:?"] ~ .ifmagnet{display: initial}
 			
 			a#link[href*="=urn:btih:"] ~ .btih,
 			a#link[href*="=urn:bitprint:"] ~ .bitprint,
@@ -19,12 +21,16 @@
 			a#link[href*="=urn:ed2khash:"] ~ .ed2k,
 			a#link[href*="as="] ~ #direct_links > .url,
 			a#link[href*="ws="] ~ #direct_links > .url,
-			a#link[href*="xs="] ~ #p2p_links > .xurl{
+			a#link[href*="xs="] ~ #p2p_links > .xurl,
+			a#link[href*="xs="] ~ #description_links > .durl
+			{
 				display: list-item;
 				position: relative;
 				left: 20px;
 			}
 			
+			
+			a#link[href*="x.do="] ~ .hdurls,
 			a#link[href*="=urn:"] ~ .hurn,
 			a#link[href*="as="] ~ .hurl,
 			a#link[href*="ws="] ~ .hurl,
@@ -67,6 +73,7 @@
 				setTimeout(function() {window.location.replace(window.location.hash.substr(1))}, 0);
 			}
 		</script>
+		<p class="ifmagnet">Если клиент не распознал магнит попробуйте магниты ниже.</p>
 		<p class="urn">Магниты и ссылки (Magnets and links):</p>
 		<a class="torrent_magnet btih">Магнит для Торрента (Magnet for Torrent)</a>
 		<a class="dc_magnet bitprint tree_tiger">Магнит для DC++ (Magnet for DC++)</a>
@@ -77,6 +84,8 @@
 		<div class="hurl" id="direct_links"></div>
 		<p class="hxurl">P2P источники (p2p sources):</p>
 		<div class="hxurl" id="p2p_links"></div>
+		<p class="hdurls">Страницы описания:</p>
+		<div class="hdurls" id="description_links"></div>
 		
 		
 		<p class="hurn">Сторонние сервисы:</p>
@@ -88,7 +97,11 @@
 		<a target="_blank" class="torcache_torrent btih">Скачать торрент из Torcache (Download torrent file from Torcache)</a>
 		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k (Ed2k file statistic)</a>
 		
-		<p>В поле ниже можно скопировать магниты на один и тотже файл из разних p2p клиентов (Например из: <a href="http://shareaza.sourceforge.net/">Shareaza</a>, <a href="http://dcplusplus.sourceforge.net/">DC++</a> и <a href="http://www.utorrent.com/">uTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="http://www.emule-project.net/">eMule</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p><label><input type="checkbox" id="freebase_be"/>Добавить freebase.be кеш (Add freebase.be cache)</label><a href="http://freebase.be/g2cache.php">?</a><br/> <button onclick="make_magnet_on_click()">Конвертировать(Convert)</button>   <button onclick="example_on_click()">Вставить пример(Insert example)</button><span id="demo"> &lt;- Нажмите "Вставить пример" а потом "Конвертировать" для демонстрации работы страницы.</span>
+		<p>В поле ниже можно скопировать магниты на один и тотже файл из разних p2p клиентов (Например из: <a href="http://shareaza.sourceforge.net/">Shareaza</a>, <a href="http://dcplusplus.sourceforge.net/">DC++</a> и <a href="http://www.utorrent.com/">uTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="http://www.emule-project.net/">eMule</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p>
+		
+		<label><input type="checkbox" id="freebase_be"/>Добавить freebase.be кеш (Add freebase.be cache)</label><a href="http://freebase.be/g2cache.php">?</a><br/>
+		<label title="Ссылка на страницу с полным описанием файла.">Страница описания: <input id="description_link"></label><a href="http://habrahabr.ru/post/247209/">?</a></br>
+		<button onclick="make_magnet_on_click()">Конвертировать(Convert)</button>   <button onclick="example_on_click()">Вставить пример(Insert example)</button><span id="demo"> &lt;- Нажмите "Вставить пример" а потом "Конвертировать" для демонстрации работы страницы.</span>
 		<textarea rows="20" id="magnet_mix"></textarea>
 		
 		
@@ -119,6 +132,10 @@
 						case "tr":
 							if (!file.trackers) file.trackers = [];
 							file.trackers.push(data);
+							break;
+						case "x.do":
+							if (!file.description_url) file.description_url = [];
+							file.description_url.push(data);
 							break;
 						case "as":
 						case "ws":
@@ -211,6 +228,12 @@
 						magnet.push(file.xurl[i])
 					}
 				}
+				if (file.description_url){
+					for (var i=0; i < file.description_url.length; i++){
+						magnet.push("&x.do=")
+						magnet.push(file.description_url[i])
+					}
+				}
 				return magnet.join("")
 			}
 			
@@ -300,6 +323,13 @@
 					if (amp) magnet.push("&"); else amp = true;
 					magnet.push("br=")
 					magnet.push(encodeURIComponent(file.bitrate))
+				}
+				if (file.description_url){
+					for (var i=0; i < file.description_url.length; i++){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("x.do=")
+						magnet.push(file.description_url[i])
+					}
 				}
 				if (file.xurl){
 					for (var i=0; i < file.xurl.length; i++){
@@ -492,6 +522,7 @@
 				}
 				set_urls(file.url,"direct_links", "url")
 				set_urls(file.xurl,"p2p_links", "xurl")
+				set_urls(file.description_url,"description_links", "durls")
 			}
 			
 			var hash = document.location.hash
@@ -512,6 +543,14 @@
 					if (!file.xurl)
 						file.xurl = [];
 					file.xurl.push("http://cache.freebase.be/"+file.hash.sha1.toLowerCase());
+					freebase.checked = false;
+				}
+				var description_url = document.getElementById("description_link")
+				if (description_url.value.length > 6){
+					if (!file.description_url)
+						file.description_url = [];
+					file.description_url.push(description_url.value);
+					description_url.value = "";
 				}
 				var magnet = full_magnet(file)
 				document.location.hash = magnet
@@ -526,7 +565,15 @@
 				"ed2k://|file|ruwiki-20141114-pages-meta-current.xml.bz2|2981763794|0218392e98873112284de6913efee0df|/",
 				"magnet:?xt=urn:bitprint:U24IYRP3WTLRY5KJH7SACBLFT2LAM62U.JNOANHGPELY63I2OMSPQ3J73AS2P4AWB5MTBJCQ&xl=2981763794&dn=ruwiki-20141114-pages-meta-current.xml.bz2",
 				"http://dumps.wikimedia.org/ruwiki/20141114/ruwiki-20141114-pages-meta-current.xml.bz2",
-				"dchub://allavtovo.ru"
+				
+				"dchub://allavtovo.ru",
+				
+				"magnet:?x.do=https://dumps.wikimedia.org/ruwiki/20141114/",
+				
+				"magnet:?fl=http://torcache.net/torrent/16253D9BEB0DF49FE30BACC62EA10BA63939F0F8.torrent",
+				
+				"magnet:?xs=http://cache.freebase.be/u24iyrp3wtlry5kjh7sacblft2lam62u"
+				
 				].join("\n\n")
 			}
 		</script>
