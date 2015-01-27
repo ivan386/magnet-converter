@@ -91,8 +91,10 @@
 		<p class="hurn">Сторонние сервисы:</p>
 		
 		<a target="_blank" class="virus_check bitprint sha1 md5">Проверка на вирусы (Virus check)</a>
+<!--
 		<a target="_blank" class="dc_search bitprint tree_tiger">Поиск в сети DirectConnect (DC) (Search in DirectConnect)</a>
 		<a target="_blank" class="bitzi_lookup bitprint sha1">Информация на Bitzi (File info from Bitzi)</a>
+-->
 		<a target="_blank" class="btdigg_search btih">Информация о торренте (Torrent info)</a>
 		<a target="_blank" class="torcache_torrent btih">Скачать торрент из Torcache (Download torrent file from Torcache)</a>
 		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k (Ed2k file statistic)</a>
@@ -546,7 +548,7 @@
 				if (file.hash){
 					set_links("virus_check", 
 						make_link("http://www.virustotal.com/latest-report.html?resource=", base32_to_hex(file.hash.sha1)))
-					set_links("dc_search", 
+/*					set_links("dc_search", 
 								make_link("http://dc.proisk.com?tiger=", file.hash.tree_tiger))
 					set_links("bitzi_lookup", 
 								make_link("http://bitzi.com/lookup/", 
@@ -555,7 +557,7 @@
 									||	(file.hash.tree_tiger?["tree:tiger:",file.hash.tree_tiger].join(""):false)
 									||	(file.hash.ed2k?["ed2k:",file.hash.ed2k].join(""):false)					)
 							)
-					if (file.hash.btih){
+*/					if (file.hash.btih){
 						set_links("btdigg_search", 
 									make_link("http://btdigg.org/search?info_hash=", file.hash.btih))
 						set_links("torcache_torrent", 
