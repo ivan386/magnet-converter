@@ -98,14 +98,41 @@
 		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k (Ed2k file statistic)</a>
 		
 		<p>В поле ниже можно скопировать магниты на один и тотже файл из разних p2p клиентов (Например из: <a href="http://shareaza.sourceforge.net/">Shareaza</a>, <a href="http://dcplusplus.sourceforge.net/">DC++</a> и <a href="http://www.utorrent.com/">uTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="http://www.emule-project.net/">eMule</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p>
+			
+		<p>
+		<b>Добавить параметр:</b>
+		</br><label title="Ссылка на страницу с полным описанием файла." ><input checked="checked" type="radio" name="param" id="description_link" />страница описания (x.do)</label> <a href="http://habrahabr.ru/post/247209/">?</a>
+		</br><label title="Прямая ссылка на торрент файл в интернете"><input type="radio" name="param" id="torrent_file_link" />торрент файл (fl)</label>
+		</br><label title="Скорость с которой необходимо загружать файл для комфортного онлайн просмотра"><input type="radio" name="param" id="bitrate" />битрейт файла (br)</label> <a href="http://habrahabr.ru/post/247591/">?</a>
+		<br /><input style="width:100%" id="add_part"/>
+		<br /><button onclick="add_parametr_on_click()">Добавить</button>
+		<br /><label><input type="checkbox" id="freebase_be"/>Добавить freebase.be кеш (Add freebase.be cache)</label><a href="http://freebase.be/g2cache.php">?</a><br/>
 		
-		<label><input type="checkbox" id="freebase_be"/>Добавить freebase.be кеш (Add freebase.be cache)</label><a href="http://freebase.be/g2cache.php">?</a><br/>
-		<label title="Ссылка на страницу с полным описанием файла.">Страница описания: <input id="description_link"></label><a href="http://habrahabr.ru/post/247209/">?</a></br>
 		<button onclick="make_magnet_on_click()">Конвертировать(Convert)</button>   <button onclick="example_on_click()">Вставить пример(Insert example)</button><span id="demo"> &lt;- Нажмите "Вставить пример" а потом "Конвертировать" для демонстрации работы страницы.</span>
 		<textarea rows="20" id="magnet_mix"></textarea>
 		
 		
 		<script>
+		
+			function add_parametr_on_click(){
+				var add_part = document.getElementById("add_part")
+				var magnet_mix = document.getElementById("magnet_mix") 
+				var description_link = document.getElementById("description_link").checked;
+				var torrent_file_link = document.getElementById("torrent_file_link").checked;
+				var bitrate = document.getElementById("bitrate").checked;
+				if (add_part.value.length > 0){
+					if (description_link)
+						prefix = "x.do=";
+					else if(torrent_file_link)
+						prefix = "fl=";
+					else if(bitrate)
+						prefix = "br=";
+					
+					magnet_mix.value += "\nmagnet:?"+prefix+encodeURIComponent(add_part.value);
+					add_part.value = "";
+					
+				}
+			}
 			
 			function try_decode(data){
 				try{
@@ -136,6 +163,10 @@
 						case "x.do":
 							if (!file.description_url) file.description_url = [];
 							file.description_url.push(data);
+							break;
+						case "fl":
+							if (!file.torrent_file_url) file.torrent_file_url = [];
+							file.torrent_file_url.push(data);
 							break;
 						case "as":
 						case "ws":
@@ -205,6 +236,12 @@
 						magnet.push(encodeURIComponent(file.url[i]))
 					}
 				}
+				if (file.torrent_file_url){
+					for (var i=0; i < file.torrent_file_url.length; i++){
+						magnet.push("&fl=")
+						magnet.push(file.torrent_file_url[i])
+					}
+				}
 				return magnet.join("")
 			}
 			
@@ -231,7 +268,7 @@
 				if (file.description_url){
 					for (var i=0; i < file.description_url.length; i++){
 						magnet.push("&x.do=")
-						magnet.push(file.description_url[i])
+						magnet.push(encodeURIComponent(file.description_url[i]))
 					}
 				}
 				return magnet.join("")
@@ -328,7 +365,14 @@
 					for (var i=0; i < file.description_url.length; i++){
 						if (amp) magnet.push("&"); else amp = true;
 						magnet.push("x.do=")
-						magnet.push(file.description_url[i])
+						magnet.push(encodeURIComponent(file.description_url[i]))
+					}
+				}
+				if (file.torrent_file_url){
+					for (var i=0; i < file.torrent_file_url.length; i++){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("fl=")
+						magnet.push(encodeURIComponent(file.torrent_file_url[i]))
 					}
 				}
 				if (file.xurl){
@@ -544,13 +588,6 @@
 						file.xurl = [];
 					file.xurl.push("http://cache.freebase.be/"+file.hash.sha1.toLowerCase());
 					freebase.checked = false;
-				}
-				var description_url = document.getElementById("description_link")
-				if (description_url.value.length > 6){
-					if (!file.description_url)
-						file.description_url = [];
-					file.description_url.push(description_url.value);
-					description_url.value = "";
 				}
 				var magnet = full_magnet(file)
 				document.location.hash = magnet
