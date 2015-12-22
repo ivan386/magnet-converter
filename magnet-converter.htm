@@ -467,7 +467,7 @@
 					push_string(name, torrent)
 					torrent.push("12:piece%20length")
 					torrent.push("i")
-					torrent.push(file.size < 20000 ? 20000 : file.size)
+					torrent.push(file.size < 16384 ? 16384 : file.size)
 					torrent.push("e")
 					torrent.push("6:pieces")
 					var sha1 = file.hash.sha1
