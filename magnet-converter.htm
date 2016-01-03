@@ -22,7 +22,8 @@
 			a#link[href*="as="] ~ #direct_links > .url,
 			a#link[href*="ws="] ~ #direct_links > .url,
 			a#link[href*="xs="] ~ #p2p_links > .xurl,
-			a#link[href*="xs="] ~ #description_links > .durl
+			a#link[href*="xs="] ~ #description_links > .durl,
+			#this_page_links > a
 			{
 				display: list-item;
 				position: relative;
@@ -86,6 +87,12 @@
 		<div class="hxurl" id="p2p_links"></div>
 		<p class="hdurls">Страницы описания:</p>
 		<div class="hdurls" id="description_links"></div>
+		<p>Ссылки на эту страницу:</a>
+		<div id="this_page_links">
+		<a href="#magnet:?" class="full_link">полная</a>
+		<a href="/#magnet:?" class="short_link">короткая</a>
+		<a href="/magnet?" class="short_msg_link">короткая для передачи в сообщении</a>
+		</div>
 		
 		
 		<p class="hurn">Сторонние сервисы:</p>
@@ -569,6 +576,19 @@
 				set_urls(file.url,"direct_links", "url")
 				set_urls(file.xurl,"p2p_links", "xurl")
 				set_urls(file.description_url,"description_links", "durls")
+				
+				var hash = window.location.hash
+				
+				if (hash && (hash.indexOf("#") != 0)){
+					hash = "#" + hash
+				}else if(!hash){
+					hash = "#magnet:?"
+				}
+				
+				set_links("full_link", hash)
+				set_links("short_link", "/" + hash)
+				set_links("short_msg_link", "/" + hash.replace("#magnet:?", "magnet?"))
+				
 			}
 			
 			var hash = document.location.hash
