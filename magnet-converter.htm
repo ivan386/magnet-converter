@@ -54,7 +54,12 @@
 			#magnet_mix{width: 100%;}
 			#file-size{quotes: "(" ")"};
 		</style>
-		<script>navigator.registerProtocolHandler('magnet', window.location.origin + '#%s', 'Magnet Converter');</script>
+		<script>
+			function register_magnet_handler()
+			{
+				navigator.registerProtocolHandler('magnet', window.location.origin + window.location.pathname + '#%s', 'Magnet Converter');
+			}
+		</script>
 	</head>
 	<body>
 		<!--noscript-->
@@ -70,11 +75,6 @@
 		<!--/noscript-->
 		<noscript>!Для правильной работы необходимо включить JavaScript!</noscript>
 		<a id="link">Скачать/Download <q id="file-name"></q><q id="file-size"></q> (Полный магнит/Full magnet)</a>
-		<script>
-			if (window.location.hash.substr(1,8) == "magnet:?"){
-				setTimeout(function() {window.location.replace(window.location.hash.substr(1))}, 0);
-			}
-		</script>
 		<p class="ifmagnet">Если клиент не распознал магнит попробуйте магниты ниже.</p>
 		<p class="urn">Магниты и ссылки (Magnets and links):</p>
 		<a class="torrent_magnet btih">Магнит для Торрента (Magnet for Torrent)</a>
@@ -593,6 +593,10 @@
 			}
 			
 			var hash = document.location.hash
+			
+			if(hash.substr(1,12) == "magnet%3A%3F")
+				hash = try_decode(hash);
+
 			var start = hash.indexOf("magnet:?")
 			if (start > 0) {
 				var magnet = hash.substr(start)
@@ -636,6 +640,10 @@
 				
 				].join("\n\n")
 			}
+
+			if (window.location.hash.substr(1,8) == "magnet:?"){
+				setTimeout(function() {window.location.replace(window.location.hash.substr(1))}, 0);
+			}
 		</script>
 		
 		<p>Данная страничка использует информацию переданную ей в url. Таким образом на сайте не хранится никакая иформация о файлах на которые эта страничка может ссылаться.</p>
@@ -644,6 +652,10 @@
 		
 		<p>
 			<a href="" download>Сохранить страничку</a>
+		</p>
+		<p>
+			Данная кнопка нужна только в случае если вы эту страницу используете как конвертер магнет ссылок и будете самостоятельно копировать нужный вид магнет ссылки в P2P клиент.
+			<button onclick="register_magnet_handler()">Зарегистрировать как обработчик магнет ссылок(Register magnet handler)</button>
 		</p>
 	</body>
 </html>
