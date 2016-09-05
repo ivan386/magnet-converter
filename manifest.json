@@ -1,0 +1,16 @@
+{ 
+  "manifest_version": 2,
+  "name": "Magnet Splitter",
+  "description": "Splits universal magnet links to suitable for different p2p clients",
+  "version": "1.0",
+  "content_scripts": [
+    {
+      "matches": [ "http://*/*", "https://*/*" ],
+      "js": [ "insert.js" ],
+	  "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    "magnet-converter.user.js"
+  ]
+} 
