@@ -59,6 +59,11 @@
 			{
 				navigator.registerProtocolHandler('magnet', window.location.origin + window.location.pathname + '#%s', 'Magnet Converter');
 			}
+			function register_urn_handler()
+			{
+				navigator.registerProtocolHandler('urn', window.location.origin + window.location.pathname + '#magnet%3A%3Fxt=%s', 'Magnet Converter');
+			}
+			
 		</script>
 	</head>
 	<body>
@@ -93,6 +98,8 @@
 		<a href="#magnet:?" class="full_link">полная</a>
 		<a href="/#magnet:?" class="short_link">короткая</a>
 		<a href="/magnet?" class="short_msg_link">короткая для передачи в сообщении</a>
+		<a href="http://magnet0.tk#:?" class="shorter_link">ещё короче</a>
+		<a href="http://магнит.tk#:?" class="shorter_ru_link">ещё чуть короче но по русски ))</a>
 		</div>
 		
 		
@@ -116,7 +123,7 @@
 		</br><label title="Скорость с которой необходимо загружать файл для комфортного онлайн просмотра"><input type="radio" name="param" id="bitrate" />битрейт файла (br)</label> <a href="http://habrahabr.ru/post/247591/">?</a>
 		<br /><input style="width:100%" id="add_part"/>
 		<br /><button onclick="add_parametr_on_click()">Добавить</button>
-		<br /><label><input type="checkbox" id="freebase_be"/>Добавить freebase.be кеш (Add freebase.be cache)</label><a href="http://freebase.be/g2cache.php">?</a><br/>
+		<br /><label><input type="checkbox" id="freebase_be"/>Добавить freebase.be кеш (Add freebase.be cache)</label><a href="http://freebase.be/g2cache.php">?</a><br/><label><input type="checkbox" id="ipfs_io"/>Добавить ipfs.io Webseed (Add ipfs.io Webseed)</label><a href="https://ipfs.io">?</a><br/>
 		
 		<button onclick="make_magnet_on_click()">Конвертировать(Convert)</button>   <button onclick="example_on_click()">Вставить пример(Insert example)</button><span id="demo"> &lt;- Нажмите "Вставить пример" а потом "Конвертировать" для демонстрации работы страницы.</span>
 		<textarea rows="20" id="magnet_mix"></textarea>
@@ -151,6 +158,52 @@
 				return data;
 			}
 			
+			function detect_ipfs_hash(url, file)
+			{
+				url.replace(/\/ipfs\/([123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+)/,function(all, hash){
+					if (!file.hash) file.hash = {};
+					file.hash.ipfs = hash;
+				})
+				return;
+			}
+			
+			function parse_urn(urn_name, urn_data, file)
+			{
+				if (!file.hash) file.hash = {};
+				switch (urn_name){
+					case "urn:sha1:":
+						file.hash.sha1 = urn_data;
+					break;
+					case "urn:ed2k:":
+					case "urn:ed2khash:":
+						file.hash.ed2k = urn_data;
+					break;
+					case "urn:aich:":
+						file.hash.aich = urn_data;
+					break;
+					case "urn:btih:":
+						if (urn_data.length < 40)
+							file.hash.btih = base32_to_hex(urn_data);
+						else
+							file.hash.btih = urn_data;
+					break;
+					case "urn:ipfs:":
+						file.hash.ipfs = urn_data;
+					break;
+					case "urn:tree:tiger:":
+						file.hash.tree_tiger = urn_data;
+					break;
+					case "urn:bitprint:":
+						var sha1_tth = urn_data.split(".");
+						if (sha1_tth && sha1_tth.length == 2){
+							file.hash.sha1 = sha1_tth[0];
+							file.hash.tree_tiger = sha1_tth[1];
+							file.hash.bitprint = urn_data;
+						}
+					break;
+				}
+			}
+			
 			function parse_magnet(params, file){
 				if (!file) file = {}
 				params.replace(/([a-z0-9\.]+)=((([a-z0-9\.]+:)*)([^&]+))&?/gmi,
@@ -182,42 +235,15 @@
 						case "ws":
 							if (!file.url) file.url = [];
 							file.url.push(data);
+							detect_ipfs_hash(data, file);
 							break;
 						case "xs":
 							if (!file.xurl) file.xurl = [];
 							file.xurl.push(data);
+							detect_ipfs_hash(data, file);
 							break;
 						case "xt":
-							if (!file.hash) file.hash = {};
-							switch (urn){
-								case "urn:sha1:":
-									file.hash.sha1 = urn_data;
-								break;
-								case "urn:ed2k:":
-								case "urn:ed2khash:":
-									file.hash.ed2k = urn_data;
-								break;
-								case "urn:aich:":
-									file.hash.aich = urn_data;
-								break;
-								case "urn:btih:":
-									if (urn_data.length < 40)
-										file.hash.btih = base32_to_hex(urn_data);
-									else
-										file.hash.btih = urn_data;
-								break;
-								case "urn:tree:tiger:":
-									file.hash.tree_tiger = urn_data;
-								break;
-								case "urn:bitprint:":
-									var sha1_tth = urn_data.split(".");
-									if (sha1_tth && sha1_tth.length == 2){
-										file.hash.sha1 = sha1_tth[0];
-										file.hash.tree_tiger = sha1_tth[1];
-										file.hash.bitprint = urn_data;
-									}
-								break;
-							}
+							parse_urn(urn, urn_data, file)
 						break;
 					}
 				})
@@ -348,6 +374,11 @@
 						magnet.push("xt=urn:btih:")
 						magnet.push(file.hash.btih)
 					}
+					if (file.hash.ipfs){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("xt=urn:ipfs:")
+						magnet.push(file.hash.ipfs)
+					}
 				}
 				if (file.trackers){
 					for (var i=0; i < file.trackers.length; i++){
@@ -410,8 +441,9 @@
 			function parse_text(text){
 				var ere = /ed2k:\/\/\|file\|([^\|]+)\|([0-9]+)\|([a-z0-9]+)\|(h=([a-z0-9]+)\|){0,1}\//i
 				var mre = /[^\s]*magnet:\?([^\s]+)/gmi
-				var hre = /https?:\/\/[\S]*?\/([^\s\/]+)$/gmi
+				var hre = /https?:\/\/[\S]*?\/([^\s\/]+)\/?$/gmi
 				var dre = /dchub:\/\/[\S]+/gmi
+				var urn = /(urn:([a-z0-9\.]+:)*)([^&\s]+)/gmi
 				var file = {}
 				text.replace(ere, function(all, name, size, hash, _, aich){
 					file.name = try_decode(name);
@@ -425,9 +457,14 @@
 				}).replace(hre, function (url, name){
 					(file.url = file.url || []).push(url)
 					if (!file.name && name) file.name = name;
+					detect_ipfs_hash(url, file)
 					return "";
 				}).replace(dre, function (xurl){
 					(file.xurl = file.xurl || []).push(xurl)
+					return "";
+				}).replace(urn, function (all, urn_name, _, urn_data){
+					console.log(urn_name, urn_data)
+					parse_urn(urn_name, urn_data, file)
 					return "";
 				});
 				return file
@@ -589,13 +626,30 @@
 				set_links("full_link", hash)
 				set_links("short_link", "/" + hash)
 				set_links("short_msg_link", "/" + hash.replace("#magnet:?", "magnet?"))
-				
+				set_links("shorter_link", hash.replace("#magnet:?", "http://magnet0.tk#:?"))
+				set_links("shorter_ru_link", hash.replace("#magnet:?", "http://магнит.tk#:?"))
 			}
 			
 			var hash = document.location.hash
 			
+			if(hash.substr(1,6) == "urn%3A")
+				hash = try_decode(hash);
+			
+			
+			if(hash.substr(1,4) == "urn:")
+			{
+				hash = "#magnet:?xt=" + hash.substr(1);
+				document.location.hash = hash;
+			}
+			
 			if(hash.substr(1,12) == "magnet%3A%3F")
 				hash = try_decode(hash);
+				
+			if(hash.substr(1,2) == ":?")
+			{
+				hash = "#magnet" + hash.substr(1);
+				document.location.hash = hash;
+			}
 
 			var start = hash.indexOf("magnet:?")
 			if (start > 0) {
@@ -615,6 +669,15 @@
 						file.xurl = [];
 					file.xurl.push("http://cache.freebase.be/"+file.hash.sha1.toLowerCase());
 					freebase.checked = false;
+				}
+				var ipfs_io = document.getElementById("ipfs_io")
+				if (ipfs_io.checked && file.hash && file.hash.ipfs)
+				{
+					if (!file.url)
+						file.url = [];
+					file.url.push("https://ipfs.io/ipfs/"+file.hash.ipfs)
+					file.url.push("https://127.0.0.1:8080/ipfs/"+file.hash.ipfs)
+					ipfs_io.checked = false;
 				}
 				var magnet = full_magnet(file)
 				document.location.hash = magnet
@@ -656,6 +719,8 @@
 		<p>
 			Данная кнопка нужна только в случае если вы эту страницу используете как конвертер магнет ссылок и будете самостоятельно копировать нужный вид магнет ссылки в P2P клиент.
 			<button onclick="register_magnet_handler()">Зарегистрировать как обработчик магнет ссылок(Register magnet handler)</button>
+			
+			<button onclick="register_urn_handler()">Зарегистрировать как обработчик URN ссылок(Register URN handler)</button> [? <a href="https://ru.wikipedia.org/wiki/URN">RU</a>|<a href="https://en.wikipedia.org/wiki/URN">EN</a>]
 		</p>
 	</body>
 </html>
