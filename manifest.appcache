@@ -1,5 +1,8 @@
 CACHE MANIFEST
-# Версия 1.0
+# Версия 1.1
 
 FALLBACK:
-magnet-converter.htm magnet-converter.htm
+* magnet-converter.htm
+
+NETWORK
+*
