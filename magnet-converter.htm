@@ -98,8 +98,8 @@
 		<a href="#magnet:?" class="full_link">полная</a>
 		<a href="/#magnet:?" class="short_link">короткая</a>
 		<a href="/magnet?" class="short_msg_link">короткая для передачи в сообщении</a>
-		<a href="http://magnet0.tk#:?" class="shorter_link">ещё короче</a>
-		<a href="http://магнит.tk#:?" class="shorter_ru_link">ещё чуть короче но по русски ))</a>
+		<a href="http://magnet0.tk#magnet:?" class="shorter_link">ещё короче</a>
+		<a href="http://магнит.tk#magnet:?" class="shorter_ru_link">ещё чуть короче но по русски ))</a>
 		</div>
 		
 		
@@ -626,8 +626,8 @@
 				set_links("full_link", hash)
 				set_links("short_link", "/" + hash)
 				set_links("short_msg_link", "/" + hash.replace("#magnet:?", "magnet?"))
-				set_links("shorter_link", hash.replace("#magnet:?", "http://magnet0.tk#:?"))
-				set_links("shorter_ru_link", hash.replace("#magnet:?", "http://магнит.tk#:?"))
+				set_links("shorter_link", hash.replace("#magnet:?", "http://magnet0.tk#magnet:?"))
+				set_links("shorter_ru_link", hash.replace("#magnet:?", "http://магнит.tk#magnet:?"))
 			}
 			
 			var hash = document.location.hash
