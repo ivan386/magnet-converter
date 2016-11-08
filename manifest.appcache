@@ -4,6 +4,8 @@ icons/favicon.ico
 icons/favicon-16x16.png
 icons/favicon-32x32.png
 ../magnet-uri-logo/magnet-uri-logo.svg
+../magnet-uri-logo/magnet-uri-logo-mini.svg
+../magnet-uri-logo/magnet-uri-logo-fullscreen.svg
 
 FALLBACK:
 * magnet-converter.htm
