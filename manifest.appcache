@@ -7,8 +7,12 @@ icons/favicon-32x32.png
 ../magnet-uri-logo/magnet-uri-logo-mini.svg
 ../magnet-uri-logo/magnet-uri-logo-fullscreen.svg
 
+NETWORK
+*
+https://ivan386.tk/*
+https://ivan386.github.io/*
+
 FALLBACK:
 * magnet-converter.htm
 
-NETWORK
-*
+
