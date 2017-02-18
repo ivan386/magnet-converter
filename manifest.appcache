@@ -1,18 +1,22 @@
 CACHE MANIFEST
-# Версия 1.6
+# 2017.02.14 Версия 1.0
+
+CACHE:
+index.html
 icons/favicon.ico
 icons/favicon-16x16.png
 icons/favicon-32x32.png
-../magnet-uri-logo/magnet-uri-logo.svg
-../magnet-uri-logo/magnet-uri-logo-mini.svg
-../magnet-uri-logo/magnet-uri-logo-fullscreen.svg
+https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo-mini.svg
 
-NETWORK
+FALLBACK:
+/ index.html
+
+NETWORK:
 *
 https://ivan386.tk/*
 https://ivan386.github.io/*
 
-FALLBACK:
-* magnet-converter.htm
+
+
 
 

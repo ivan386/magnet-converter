@@ -645,6 +645,13 @@
 				set_links("shorter_ru_link", hash.replace("#magnet:?", "http://магнит.tk#magnet:?"))
 			}
 			
+			
+			if(document.location.hash == 0)
+				history.replaceState("","",document.location.toString().replace("/magnet:", "/#magnet:"))
+			
+			if(document.location.hash == 0)
+				history.replaceState("","",document.location.toString().replace("/magnet?", "/#magnet:?"))
+			
 			var hash = document.location.hash
 			
 			if(hash.substr(1,6) == "urn%3A")
@@ -739,7 +746,7 @@
 		</p>
 		<p>
 			Значок для обозначения магнита (Icon for magnet):
-			<img src="../magnet-uri-logo/magnet-uri-logo-mini.svg"/><a href="https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo-mini.svg">https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo-mini.svg</a></br>
+			<img src="https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo-mini.svg"/><a href="https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo-mini.svg">https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo-mini.svg</a></br>
 			Вы можете свободно использовать его для обозначения магнита на просторах интернета и вне его.
 		</p>
 		<p>
