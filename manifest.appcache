@@ -1,13 +1,6 @@
 CACHE MANIFEST
 # 2017.02.21 Версия 1.0
 
-CACHE:
-index.html
-icons/favicon.ico
-icons/favicon-16x16.png
-icons/favicon-32x32.png
-https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo-mini.svg
-
 FALLBACK:
 / index.html
 
@@ -16,7 +9,9 @@ NETWORK:
 https://ivan386.tk/*
 https://ivan386.github.io/*
 
-
-
-
-
+CACHE:
+index.html
+icons/favicon.ico
+icons/favicon-16x16.png
+icons/favicon-32x32.png
+https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo-mini.svg
