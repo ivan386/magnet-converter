@@ -214,6 +214,9 @@
 							file.hash.bitprint = urn_data;
 						}
 					break;
+					default:
+						if (!file.urns) file.urns = [];
+						file.urns.push(urn_name+urn_data);
 				}
 			}
 			
@@ -346,10 +349,17 @@
 				var magnet = ["magnet:?"]
 				var amp = false
 				if (!file) return;
-				if (file.hash && file.hash.ed2k){
-					magnet.push("xt=urn:ed2k:")
-					magnet.push(file.hash.ed2k)
-					amp = true;
+				if (file.hash){
+					if (file.hash.btih){
+						magnet.push("xt=urn:btih:")
+						magnet.push(file.hash.btih)
+						amp = true;
+					}
+					if (file.hash.ed2k){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("xt=urn:ed2k:")
+						magnet.push(file.hash.ed2k)
+					}
 				}
 				if (file.size) {
 					if (amp) magnet.push("&"); else amp = true;
@@ -382,16 +392,19 @@
 						magnet.push("xt=urn:tree:tiger:")
 						magnet.push(file.hash.tree_tiger)
 					}
-					if (file.hash.btih){
-						if (amp) magnet.push("&"); else amp = true;
-						magnet.push("xt=urn:btih:")
-						magnet.push(file.hash.btih)
-					}
 					if (file.hash.ipfs){
 						if (amp) magnet.push("&"); else amp = true;
 						magnet.push("xt=urn:ipfs:")
 						magnet.push(file.hash.ipfs)
 					}
+				}
+				if (file.urns){
+					file.urns.map((urn)=>{
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("xt=")
+						magnet.push(urn)
+						return urn;
+					})
 				}
 				if (file.trackers){
 					for (var i=0; i < file.trackers.length; i++){
