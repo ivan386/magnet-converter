@@ -129,7 +129,6 @@
 		
 		<p>В поле ниже можно скопировать магниты на один и тотже файл из разних p2p клиентов (Например из: <a href="http://shareaza.sourceforge.net/">Shareaza</a>, <a href="http://dcplusplus.sourceforge.net/">DC++</a> и <a href="http://www.utorrent.com/">uTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="http://www.emule-project.net/">eMule</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p>
 			
-		<p>
 		<b>Добавить параметр:</b>
 		</br><label title="Ссылка на страницу с полным описанием файла." ><input checked="checked" type="radio" name="param" id="description_link" />страница описания (x.do)</label> <a href="http://habrahabr.ru/post/247209/">?</a>
 		</br><label title="Прямая ссылка на торрент файл в интернете"><input type="radio" name="param" id="torrent_file_link" />торрент файл (fl)</label>
@@ -684,6 +683,19 @@
 			if(hash.substr(1,2) == ":?")
 			{
 				hash = "#magnet" + hash.substr(1);
+				document.location.hash = hash;
+			}
+			
+			if(hash.length <= 1 && document.referrer.indexOf("magnet:?") > 0)
+			{
+				hash = "#" + document.referrer.substr(document.referrer.indexOf("magnet:?"));
+				document.location.hash = hash;
+			}
+			
+			if(hash.length <= 1 && document.referrer.indexOf("magnet%3A%3F") > 0)
+			{
+				hash = "#" + document.referrer.substr(document.referrer.indexOf("magnet%3A%3F"));
+				hash = try_decode(hash);
 				document.location.hash = hash;
 			}
 
