@@ -20,7 +20,9 @@
 			.hurn, .hurl, .hxurl, .hdurls, .ifmagnet
 			{display: none;}
 			
-			a#link[href*="magnet:?"] ~ #demo{display: none}
+			a#link[href*="magnet:?"] ~ #demo,
+			a#link[href*="magnet:?"] ~ .info
+			{display: none}
 			
 			a#link[href*="magnet:?"] ~ .ifmagnet{display: initial}
 			
@@ -63,7 +65,13 @@
 				font-size: xx-large;
 			}
 			#magnet_mix{width: 100%;}
-			#file-size{quotes: "(" ")"};
+			
+			.script > .noscript{
+				display: none;
+			}
+			
+			#file-size{quotes: "(" ")";};
+			
 		</style>
 		<script>
 			function register_magnet_handler()
@@ -79,18 +87,28 @@
 	</head>
 	<body>
 		<!--noscript-->
-		<script>document.write("\x3C!--")</script>
-		<p>
+		
+		<p class="noscript">!Для правильной работы необходимо включить JavaScript!</p>
+		
+		<p class="noscript">
 		Для того чтобы открыть магнет-ссылку сотрите в адресной строке выше(где адрес этой страницы) часть до #magnet:?... вместе с # и нажмите Enter(на клавиатуре) или ->(рядом с адресной строкой)
 		</p>
-		<p>
+		<p class="noscript">
 		Например должно остаться:<br>
 		<code>magnet:?xt=urn:btih:CYST3G7LBX2J7YYLVTDC5IILUY4TT4HY&xl=2981763794&dn=ruwiki-20141114-pages-meta-current.xml.bz2&tr=http%3A//url2torrent.net%3A6970/announce</code>
 		</p>
 		
 		<!--/noscript-->
-		<noscript>!Для правильной работы необходимо включить JavaScript!</noscript>
+		
 		<a id="link">Скачать/Download <q id="file-name"></q><q id="file-size"></q> (Полный магнит/Full magnet)</a>
+		
+		<p class="info">
+			Данная страница помогает собрать универсальную <a href="https://ru.wikipedia.org/wiki/Magnet-ссылка">magnet-ссылку(далее магнит)</a>. Скопировать URL на эту страницу со встроенным магнитом. Этот URL можно использовать для передачи в сообщении или публикации на форуме где не поддерживается вставка магнита.
+		</p>
+		<p class="info">	
+			Также на странице вы найдёте магниты подходящие для разных <a href="https://ru.wikipedia.org/wiki/Одноранговая_сеть">одноранговых сетей(Peer to Peer).</a>
+		</p>
+		
 		<p class="ifmagnet">Если клиент не распознал магнит попробуйте магниты ниже.</p>
 		<p class="urn">Магниты и ссылки (Magnets and links):</p>
 		<a class="torrent_magnet btih">Магнит для Торрента (Magnet for Torrent)</a>
@@ -104,7 +122,7 @@
 		<div class="hxurl" id="p2p_links"></div>
 		<p class="hdurls">Страницы описания:</p>
 		<div class="hdurls" id="description_links"></div>
-		<p>Ссылки на эту страницу (links to this page):</a>
+		<p>Ссылки на эту страницу (links to this page):</p>
 		<div id="this_page_links">
 		<a href="#magnet:?" class="full_link">полная (full link)</a>
 		<a href="/#magnet:?" class="short_link">короткая(short link)</a>
@@ -127,7 +145,7 @@
 		<a target="_blank" class="torcache_torrent btih">Скачать торрент из Torcache (Download torrent file from Torcache)</a>
 		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k (Ed2k file statistic)</a>
 		
-		<p>В поле ниже можно скопировать магниты на один и тотже файл из разних p2p клиентов (Например из: <a href="http://shareaza.sourceforge.net/">Shareaza</a>, <a href="http://dcplusplus.sourceforge.net/">DC++</a> и <a href="http://www.utorrent.com/">uTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="http://www.emule-project.net/">eMule</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p>
+		<p>В поле ниже можно скопировать <a href="https://ru.wikipedia.org/wiki/Magnet-ссылка">магниты</a> на один и тотже файл из разних p2p клиентов (Например из: <a href="https://ru.wikipedia.org/wiki/Shareaza">Shareaza</a>, <a href="https://ru.wikipedia.org/wiki/Direct_Connect">Direct Connect</a> и <a href="https://ru.wikipedia.org/wiki/BitTorrent_(протокол)">BitTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="https://ru.wikipedia.org/wiki/EDonkey2000_(сеть)">EDonkey2000(eMule)</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p>
 			
 		<b>Добавить параметр:</b>
 		<br /><label title="Ссылка на страницу с полным описанием файла." ><input checked="checked" type="radio" name="param" id="description_link" />страница описания (x.do)</label> <a href="http://habrahabr.ru/post/247209/">?</a>
@@ -238,6 +256,9 @@
 							if (!file.trackers) file.trackers = [];
 							file.trackers.push(data);
 							break;
+						case "mt":	
+							file.collection = file.collection || [];
+							file.collection.push(data);
 						case "x.do":
 							if (!file.description_url) file.description_url = [];
 							file.description_url.push(data);
@@ -334,11 +355,27 @@
 					if (file.hash.aich){
 						link.push("h=" + file.hash.aich)
 					}
+					
+					if (file.hash_list && file.hash_list.ed2k){
+						link.push("p=" + file.hash_list.ed2k.join(":"))
+					}
+					
 					if (file.url){
 						for (var i=0; i < file.url.length; i++){
 							link.push("s=" + encodeURIComponent(file.url[i]))
 						}
 					}
+					
+					if (file.collection){
+						for (var i=0; i < file.collection.length; i++){
+							link.push("f=" + encodeURIComponent(file.collection[i]))
+						}
+					}
+					
+					if (file.sources && file.sources.ed2k){
+						link.push("/|sources," + file.sources.ed2k.join(","))
+					}
+					
 					link.push("/")
 					return link.join("|")
 				}
@@ -353,6 +390,21 @@
 						magnet.push("xt=urn:btih:")
 						magnet.push(file.hash.btih)
 						amp = true;
+					}
+					if (file.hash.sha1 && file.hash.tree_tiger){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("xt=urn:bitprint:")
+						magnet.push(file.hash.sha1)
+						magnet.push(".")
+						magnet.push(file.hash.tree_tiger)
+					}else if(file.hash.sha1){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("xt=urn:sha1:")
+						magnet.push(file.hash.sha1)
+					}else if(file.hash.tree_tiger){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("xt=urn:tree:tiger:")
+						magnet.push(file.hash.tree_tiger)
 					}
 					if (file.hash.ed2k){
 						if (amp) magnet.push("&"); else amp = true;
@@ -375,21 +427,6 @@
 						if (amp) magnet.push("&"); else amp = true;
 						magnet.push("xt=urn:aich:")
 						magnet.push(file.hash.aich)
-					}
-					if (file.hash.sha1 && file.hash.tree_tiger){
-						if (amp) magnet.push("&"); else amp = true;
-						magnet.push("xt=urn:bitprint:")
-						magnet.push(file.hash.sha1)
-						magnet.push(".")
-						magnet.push(file.hash.tree_tiger)
-					}else if(file.hash.sha1){
-						if (amp) magnet.push("&"); else amp = true;
-						magnet.push("xt=urn:sha1:")
-						magnet.push(file.hash.sha1)
-					}else if(file.hash.tree_tiger){
-						if (amp) magnet.push("&"); else amp = true;
-						magnet.push("xt=urn:tree:tiger:")
-						magnet.push(file.hash.tree_tiger)
 					}
 					if (file.hash.ipfs){
 						if (amp) magnet.push("&"); else amp = true;
@@ -441,6 +478,13 @@
 						magnet.push(encodeURIComponent(file.torrent_file_url[i]))
 					}
 				}
+				if (file.collection){
+					for (var i=0; i < file.collection.length; i++){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("mt=")
+						magnet.push(encodeURIComponent(file.collection[i]))
+					}
+				}
 				if (file.xurl){
 					for (var i=0; i < file.xurl.length; i++){
 						if (amp) magnet.push("&"); else amp = true;
@@ -463,18 +507,50 @@
 				}
 			}
 			
+			/* https://habrahabr.ru/post/118171/ */
+			function parse_ed2k_parts(params, sources, file)
+			{
+				if (params){
+					var params_re = /([a-z])=([^\|]+)\|/gmi
+					while (p = params_re.exec(params))
+					{
+						switch(p[1])
+						{
+							case "h":
+								(file.hash = file.hash || {}).aich = p[2];
+								break;
+							case "s":
+								(file.url = file.url || []).push(try_decode(p[2]));
+								break;
+							case "p":
+								(file.hash_list = file.hash_list || {}).ed2k = p[2].split(":");
+								break;
+							case "f":
+								(file.collection = file.collection || []).push(try_decode(p[2]));
+								break;
+						}
+					}
+				}
+
+				if (sources){
+					file.sources = file.sources || {}
+					file.sources.ed2k  = file.sources.ed2k || []
+					sources.split(",").map((source)=>file.sources.ed2k.push(source))
+				}
+			}
+			
 			function parse_text(text){
-				var ere = /ed2k:\/\/\|file\|([^\|]+)\|([0-9]+)\|([a-z0-9]+)\|(h=([a-z0-9]+)\|){0,1}\//i
+				var ere = /ed2k:\/\/\|file\|([^\|]+)\|([0-9]+)\|([a-z0-9]+)\|(([a-z]=[^\|]+\|)*)(\/\|sources,([^\|]+)\|){0,1}\//gmi
 				var mre = /[^\s]*magnet:\?([^\s]+)/gmi
 				var hre = /https?:\/\/[\S]*?\/([^\s\/]+)\/?$/gmi
 				var dre = /dchub:\/\/[\S]+/gmi
 				var urn = /(urn:([a-z0-9\.]+:)*)([^&\s]+)/gmi
 				var file = {}
-				text.replace(ere, function(all, name, size, hash, _, aich){
+				text.replace(ere, function(all, name, size, hash, params, sources){
 					file.name = try_decode(name);
 					file.size = size;
 					(file.hash = file.hash || []).ed2k = hash;
-					file.hash.aich = aich;
+					parse_ed2k_parts(arguments[4], arguments[7], file);
 					return "";
 				}).replace(mre, function (all, params){
 					parse_magnet(params, file);
@@ -780,6 +856,6 @@
 			<a href="https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo.svg">https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo.svg</a></br>
 			<a href="https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo-fullscreen.svg">https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo-fullscreen.svg</a>
 		</p>
-		
+		<script>document.body.classList.add("script")</script>
 	</body>
 </html>
