@@ -17,7 +17,7 @@
 		<style>
 			.btih, .bitprint, .md5, .sha1, .tree_tiger, 
 			.ed2k, a#link, .urn, .url, .xurl, durl,
-			.hurn, .hurl, .hxurl, .hdurls, .ifmagnet
+			.hurn, .hurl, .hxurl, .hdurls, .ifmagnet, .collections
 			{display: none;}
 			
 			a#link[href*="magnet:?"] ~ #demo,
@@ -36,6 +36,7 @@
 			a#link[href*="ws="] ~ #direct_links > .url,
 			a#link[href*="xs="] ~ #p2p_links > .xurl,
 			a#link[href*="xs="] ~ #description_links > .durl,
+			a#link[href*="mt="] ~ #p2p_collections > .collection,
 			#this_page_links > a
 			{
 				display: list-item;
@@ -48,7 +49,8 @@
 			a#link[href*="=urn:"] ~ .hurn,
 			a#link[href*="as="] ~ .hurl,
 			a#link[href*="ws="] ~ .hurl,
-			a#link[href*="xs="] ~ .hxurl{
+			a#link[href*="xs="] ~ .hxurl,
+			a#link[href*="mt="] ~ .collections{
 				display: block;
 			}
 			
@@ -120,6 +122,8 @@
 		<div class="hurl" id="direct_links"></div>
 		<p class="hxurl">P2P источники (p2p sources):</p>
 		<div class="hxurl" id="p2p_links"></div>
+		<p class="collections">P2P Коллекции (p2p collections):</p>
+		<div class="collections" id="p2p_collections"></div>
 		<p class="hdurls">Страницы описания:</p>
 		<div class="hdurls" id="description_links"></div>
 		<p>Ссылки на эту страницу (links to this page):</p>
@@ -372,8 +376,14 @@
 						}
 					}
 					
-					if (file.sources && file.sources.ed2k){
-						link.push("/|sources," + file.sources.ed2k.join(","))
+					if (file.xurl){
+						link.push("/|sources," + file.xurl.map(
+							function (xurl){
+								var matches = (/ed2kftp\:\/\/([^\/]+)\/[a-z0-9]+\/[0-9]+\//gmi).exec(xurl)
+								if (matches)
+									return matches[1];
+							}
+						).join(","))
 					}
 					
 					link.push("/")
@@ -533,9 +543,10 @@
 				}
 
 				if (sources){
-					file.sources = file.sources || {}
-					file.sources.ed2k  = file.sources.ed2k || []
-					sources.split(",").map((source)=>file.sources.ed2k.push(source))
+					file.xurl = file.xurl || [];
+					sources.split(",").map(
+						(source)=>file.xurl.push("ed2kftp://"+source+"/"+file.hash.ed2k+"/"+file.size+"/")
+					)
 				}
 			}
 			
@@ -719,7 +730,8 @@
 					}
 					set_urls(file.url,"direct_links", "url")
 					set_urls(file.xurl,"p2p_links", "xurl")
-					set_urls(file.description_url,"description_links", "durls")
+					set_urls(file.collection,"p2p_collections", "collection")
+					set_urls(file.description_url,"description_links", "durl")
 				}
 
 				
