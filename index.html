@@ -124,7 +124,7 @@
 		<div class="hxurl" id="p2p_links"></div>
 		<p class="collections">P2P Коллекции (p2p collections):</p>
 		<div class="collections" id="p2p_collections"></div>
-		<p class="hdurls">Страницы описания:</p>
+		<p class="hdurls">Страницы описания (description pages):</p>
 		<div class="hdurls" id="description_links"></div>
 		<p>Ссылки на эту страницу (links to this page):</p>
 		<div id="this_page_links">
@@ -137,7 +137,7 @@
 		</div>
 		
 		
-		<p class="hurn">Сторонние сервисы:</p>
+		<p class="hurn">Сторонние сервисы (Third-party services):</p>
 		
 		<a target="_blank" class="virus_check bitprint sha1 md5">Проверка на вирусы (Virus check)</a>
 
@@ -146,7 +146,7 @@
 -->
 		<a target="_blank" class="ikwyd_search btih">Информация о торренте (Torrent info) IKWYD</a>
 		<a target="_blank" class="btdigg_search btih">Информация о торренте (Torrent info) BTDIG</a>
-		<a target="_blank" class="torcache_torrent btih">Скачать торрент из Torcache (Download torrent file from Torcache)</a>
+		<a target="_blank" class="torcache_torrent btih">Скачать торрент из хранилища торрентов (Download torrent file from torrent cache)</a>
 		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k (Ed2k file statistic)</a>
 		
 		<p>В поле ниже можно скопировать <a href="https://ru.wikipedia.org/wiki/Magnet-ссылка">магниты</a> на один и тотже файл из разних p2p клиентов (Например из: <a href="https://ru.wikipedia.org/wiki/Shareaza">Shareaza</a>, <a href="https://ru.wikipedia.org/wiki/Direct_Connect">Direct Connect</a> и <a href="https://ru.wikipedia.org/wiki/BitTorrent_(протокол)">BitTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="https://ru.wikipedia.org/wiki/EDonkey2000_(сеть)">EDonkey2000(eMule)</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p>
@@ -284,7 +284,10 @@
 							break;
 						case "xt":
 							parse_urn(urn, urn_data, file)
-						break;
+							break;
+						case "x.ed2k.p":
+							(file.hash_list = file.hash_list || {}).ed2k = data.split(":");
+							break;
 					}
 				})
 				return file;
@@ -494,6 +497,11 @@
 						magnet.push("mt=")
 						magnet.push(encodeURIComponent(file.collection[i]))
 					}
+				}
+				if (file.hash_list && file.hash_list.ed2k){
+					if (amp) magnet.push("&"); else amp = true;
+					magnet.push("x.ed2k.p=")
+					magnet.push(file.hash_list.ed2k.join(":"))
 				}
 				if (file.xurl){
 					for (var i=0; i < file.xurl.length; i++){
@@ -722,7 +730,7 @@
 							set_links("btdigg_search", 
 										make_link("https://btdig.com/search?info_hash=", file.hash.btih))
 							set_links("torcache_torrent", 
-										make_link("https://itorrents.org/torrent/", file.hash.btih.toUpperCase() , ".torrent"))
+										make_link("http://btcache.me/torrent/", file.hash.btih.toUpperCase()))
 						}
 						if (file.hash.ed2k)
 							set_links("ed2k-stats", 
