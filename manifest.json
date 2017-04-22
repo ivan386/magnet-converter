@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Magnet Splitter",
   "description": "Splits universal magnet links to suitable for different p2p clients",
-  "version": "1.0",
+  "version": "1.1",
   "content_scripts": [
     {
       "matches": [ "http://*/*", "https://*/*" ],

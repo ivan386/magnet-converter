@@ -3,7 +3,7 @@
 // @description Splits universal magnet links to suitable for different p2p clients.
 // @author ivan386
 // @license MIT
-// @version 1.0
+// @version 1.1
 // @run-at document-end
 // @include http://*/*
 // @include https://*/*
