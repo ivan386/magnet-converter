@@ -383,13 +383,16 @@
 					}
 					
 					if (file.xurl){
-						link.push("/|sources," + file.xurl.map(
+						var sources = [];
+						file.xurl.map(
 							function (xurl){
 								var matches = (/ed2kftp\:\/\/([^\/]+)\/[a-z0-9]+\/[0-9]+\//gmi).exec(xurl)
 								if (matches)
-									return matches[1];
+									sources.push(matches[1]);
 							}
-						).join(","))
+						)
+						if ( sources.length > 0 )
+							link.push("/|sources," + sources.join(","))
 					}
 					
 					link.push("/")
@@ -513,7 +516,8 @@
 						magnet.push(file.xurl[i])
 					}
 				}
-				return magnet.join("")
+				if ( magnet.length > 1 )
+					return magnet.join("");
 			}
 			
 			function set_links(class_name, href, download){
@@ -528,6 +532,34 @@
 				}
 			}
 			
+			function base32_to_hex(base32){
+				// http://tools.ietf.org/html/rfc4648
+				if (!base32) return "";
+				var number = 0
+				var bit_pos = 0
+				var detector = /[2-7a-z]/gmi
+				var hex_str = []
+				base32.replace(detector, function(letter){
+					var val = parseInt(letter, 36);
+
+					if (val <= 7)
+						val += 24;
+					else
+						val -= 10;
+					
+					number = ((number << 5) | val) & 255
+					bit_pos += 5
+					
+					for (; bit_pos >= 4;){
+						bit_pos -= 4
+						var hex_num = (number >> bit_pos) & 15
+						hex_str.push(hex_num.toString(16))
+					}
+				})
+				
+				return hex_str.join("");
+			}
+
 			/* https://habrahabr.ru/post/118171/ */
 			function parse_ed2k_parts(params, sources, file)
 			{
@@ -655,35 +687,6 @@
 					torrent.push("e")
 					return torrent.join("")
 				}
-			}
-			
-				
-			function base32_to_hex(base32){
-				// http://tools.ietf.org/html/rfc4648
-				if (!base32) return "";
-				var number = 0
-				var bit_pos = 0
-				var detector = /[2-7a-z]/gmi
-				var hex_str = []
-				base32.replace(detector, function(letter){
-					var val = parseInt(letter, 36);
-
-					if (val <= 7)
-						val += 24;
-					else
-						val -= 10;
-					
-					number = ((number << 5) | val) & 255
-					bit_pos += 5
-					
-					for (; bit_pos >= 4;){
-						bit_pos -= 4
-						var hex_num = (number >> bit_pos) & 15
-						hex_str.push(hex_num.toString(16))
-					}
-				})
-				
-				return hex_str.join("");
 			}
 			
 			function set_urls(urls, container_id, urls_class){

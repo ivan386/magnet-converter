@@ -246,13 +246,16 @@ ed2k://|file|ruwiki-20141114-pages-meta-current.xml.bz2|2981763794|0218392e98873
 			}
 			
 			if (file.xurl){
-				link.push("/|sources," + file.xurl.map(
+				var sources = [];
+				file.xurl.map(
 					function (xurl){
 						var matches = (/ed2kftp\:\/\/([^\/]+)\/[a-z0-9]+\/[0-9]+\//gmi).exec(xurl)
 						if (matches)
-							return matches[1];
+							sources.push(matches[1]);
 					}
-				).join(","))
+				)
+				if ( sources.length > 0 )
+					link.push("/|sources," + sources.join(","))
 			}
 			
 			link.push("/")
@@ -367,6 +370,18 @@ magnet:?xt=urn:ed2k:0218392e98873112284de6913efee0df&xl=2981763794&dn=ruwiki-201
 				magnet.push(encodeURIComponent(file.torrent_file_url[i]))
 			}
 		}
+		if (file.collection){
+			for (var i=0; i < file.collection.length; i++){
+				if (amp) magnet.push("&"); else amp = true;
+				magnet.push("mt=")
+				magnet.push(encodeURIComponent(file.collection[i]))
+			}
+		}
+		if (file.hash_list && file.hash_list.ed2k){
+			if (amp) magnet.push("&"); else amp = true;
+			magnet.push("x.ed2k.p=")
+			magnet.push(file.hash_list.ed2k.join(":"))
+		}
 		if (file.xurl){
 			for (var i=0; i < file.xurl.length; i++){
 				if (amp) magnet.push("&"); else amp = true;
@@ -374,7 +389,8 @@ magnet:?xt=urn:ed2k:0218392e98873112284de6913efee0df&xl=2981763794&dn=ruwiki-201
 				magnet.push(file.xurl[i])
 			}
 		}
-		return magnet.join("")
+		if ( magnet.length > 1 )
+			return magnet.join("");
 	}
 
 
@@ -525,35 +541,33 @@ data:application/x-bittorrent;,d4:infod6:lengthi10826029e4:name23:mediawiki-1.15
 		
 		if (magnet_index > -1){
 			var file = parse_magnet(magnet_link);
-			var spliter = "/" + file.name + "#magnet";
-			if ( link.href.indexOf( spliter ) ){
-				/*
-				URL + magnet
-				Добавляем прямую ссылку на файл.
-				*/
-				
-				if (!file.url) file.url = [];
-				file.url.push(link.href.split( spliter )[0] + "/" + file.name);
+			if ( file.name ){
+				var spliter = "/" + file.name + "#magnet";
+				if ( link.href.indexOf( spliter ) > -1 ){
+					/*
+					URL + magnet
+					Добавляем прямую ссылку на файл.
+					*/
+					
+					if (!file.url) file.url = [];
+					file.url.push(link.href.split( spliter )[0] + "/" + file.name);
+				}
 			}
 			
-			var length = 0
-			for(var key in file.hash){
-				length ++
-			}
+			var link_functions = {
+				"micro-torrent": make_micro_torrent, 
+				"torrent-magnet":torrent_magnet, 
+				"dc-magnet": dc_magnet, 
+				"ed2k-link": ed2k_link, 
+				"full-magnet": full_magnet}
 			
-			if (length > 1)
-				console.log("universal magnet")
-			else
-				console.log("simple magnet")
-			
-			var link_functions = {"micro-torrent": make_micro_torrent, "torrent-magnet":torrent_magnet, "dc-magnet": dc_magnet, "ed2k-link": ed2k_link, "full-magnet": full_magnet}
 			for (var name in link_functions){
 				var href = link_functions[name](file)
 				if (href){
 					var a = insert_link_after(link, href, name);
 					if ( name == "micro-torrent" ){
 						// Используем атрибут download для того чтоб задать имя торрент файла.
-						a.setAttribute("download", (file.name) + ".micro.torrent");
+						a.setAttribute("download", ( file.name ) + ".micro.torrent");
 					}
 						
 				}
@@ -565,10 +579,10 @@ data:application/x-bittorrent;,d4:infod6:lengthi10826029e4:name23:mediawiki-1.15
 /* Текст ссылкам зададим через стили. Так же можно и картинки вписать в виде Data URI. */
 
 	document.head.appendChild(document.createElement('style')).appendChild(document.createTextNode(`
-[class*='-magnet'], .ed2k-link, .micro-torrent{
-	margin-left: 1em
-}
-a[class*='-magnet']:before, .ed2k-link:before, .micro-torrent:before{
-	content: attr(class)
-}`))
+		[class*='-magnet'], .ed2k-link, .micro-torrent{
+			margin-left: 1em
+		}
+		a[class*='-magnet']:before, .ed2k-link:before, .micro-torrent:before{
+			content: attr(class)
+		}`))
 })();
