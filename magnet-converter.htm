@@ -102,7 +102,7 @@
 		
 		<!--/noscript-->
 		
-		<a id="link"><img style="float: right" src="https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo.svg"/> Скачать/Download <q id="file-name"></q><q id="file-size"></q> (Полный магнит/Full magnet)</a>
+		<a id="link"><img style="float: right; top: -0.7em; position: relative;" src="https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo.svg"/> Скачать/Download <q id="file-name"></q><q id="file-size"></q> (Полный магнит/Full magnet)</a>
 		
 		<p class="info">
 			Данная страница помогает собрать универсальную <a href="https://ru.wikipedia.org/wiki/Magnet-ссылка">magnet-ссылку(далее магнит)</a>. Скопировать URL на эту страницу со встроенным магнитом. Этот URL можно использовать для передачи в сообщении или публикации на форуме где не поддерживается вставка магнита.
@@ -265,6 +265,7 @@
 						case "mt":	
 							file.collection = file.collection || [];
 							file.collection.push(data);
+							break;
 						case "x.do":
 							if (!file.description_url) file.description_url = [];
 							file.description_url.push(data);
@@ -356,7 +357,7 @@
 			}
 			
 			function ed2k_link(file){
-				link = ["ed2k://|file"]
+				var link = ["ed2k://|file"]
 				if (file && file.hash && file.name && file.size && file.hash.ed2k) {
 					link.push(encodeURIComponent(file.name))
 					link.push(file.size)
@@ -617,7 +618,7 @@
 						push_string(file.trackers[0], torrent)
 						if (file.trackers.length>1){
 							torrent.push("13:announce-listl")
-							for (i = 1; file.trackers.length>i; i++){
+							for (var i = 1; file.trackers.length>i; i++){
 								var tracker = encodeURIComponent(decodeURIComponent(file.trackers[i]))
 								push_string(tracker, torrent)
 							}
@@ -645,7 +646,7 @@
 					torrent.push("e")
 					if (file.url && file.url.length>0){
 						torrent.push("8:url-listl")
-						for (i = 0; file.url.length>i; i++){
+						for (var i = 0; file.url.length>i; i++){
 							var url = encodeURIComponent(decodeURIComponent(file.url[i]))
 							push_string(url, torrent)
 						}

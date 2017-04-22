@@ -24,6 +24,56 @@
 /*
 Разбираем магнит на части
 */
+
+	function detect_ipfs_hash(url, file)
+	{
+		url.replace(/\/ipfs\/([123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+)/,function(all, hash){
+			if (!file.hash) file.hash = {};
+			file.hash.ipfs = hash;
+		})
+		return;
+	}
+
+	function parse_urn(urn_name, urn_data, file)
+	{
+		if (!file.hash) file.hash = {};
+		switch (urn_name){
+			case "urn:sha1:":
+				file.hash.sha1 = urn_data;
+			break;
+			case "urn:ed2k:":
+			case "urn:ed2khash:":
+				file.hash.ed2k = urn_data;
+			break;
+			case "urn:aich:":
+				file.hash.aich = urn_data;
+			break;
+			case "urn:btih:":
+				if (urn_data.length < 40)
+					file.hash.btih = base32_to_hex(urn_data);
+				else
+					file.hash.btih = urn_data;
+			break;
+			case "urn:ipfs:":
+				file.hash.ipfs = urn_data;
+			break;
+			case "urn:tree:tiger:":
+				file.hash.tree_tiger = urn_data;
+			break;
+			case "urn:bitprint:":
+				var sha1_tth = urn_data.split(".");
+				if (sha1_tth && sha1_tth.length == 2){
+					file.hash.sha1 = sha1_tth[0];
+					file.hash.tree_tiger = sha1_tth[1];
+					file.hash.bitprint = urn_data;
+				}
+			break;
+			default:
+				if (!file.urns) file.urns = [];
+				file.urns.push(urn_name+urn_data);
+		}
+	}
+	
 	function parse_magnet(params, file){
 		if (!file) file = {}
 		params.replace(/([a-z0-9\.]+)=((([a-z0-9\.]+:)*)([^&]+))&?/gmi,
@@ -43,6 +93,10 @@
 					if (!file.trackers) file.trackers = [];
 					file.trackers.push(data);
 					break;
+				case "mt":	
+					file.collection = file.collection || [];
+					file.collection.push(data);
+					break;
 				case "x.do": // Ссылка на страницу описания файла.
 					if (!file.description_url) file.description_url = [];
 					file.description_url.push(data);
@@ -55,43 +109,19 @@
 				case "ws": // Web Seed - прямая ссылка на файл или каталог для загрузки.
 					if (!file.url) file.url = [];
 					file.url.push(data);
+					detect_ipfs_hash(data, file);
 					break;
 				case "xs": // (eXact Source) — ссылка на источник файла в P2P сети.
 					if (!file.xurl) file.xurl = [];
 					file.xurl.push(data);
+					detect_ipfs_hash(data, file);
 					break;
 				case "xt": // URN, содержащий хеш
-					if (!file.hash) file.hash = {};
-					switch (urn){
-						case "urn:sha1:": // sha1 хеш  файла (Base32)
-							file.hash.sha1 = urn_data;
-						break;
-						case "urn:ed2k:": // ed2k хеш  файла (Hex)
-						case "urn:ed2khash:":
-							file.hash.ed2k = urn_data;
-						break;
-						case "urn:aich:": // Advanced Intelligent Corruption Handler хеш  файла (Base32)
-							file.hash.aich = urn_data;
-						break;
-						case "urn:btih:": // BitTorrent Info Hash (Hex, Base32)
-							if (urn_data.length < 40)
-								file.hash.btih = base32_to_hex(urn_data);
-							else
-								file.hash.btih = urn_data;
-						break;
-						case "urn:tree:tiger:": // Tiger Tree Hash (TTH) файла (Base32)
-							file.hash.tree_tiger = urn_data;
-						break;
-						case "urn:bitprint:": // [SHA1].[TTH] (Base32)
-							var sha1_tth = urn_data.split(".");
-							if (sha1_tth && sha1_tth.length == 2){
-								file.hash.sha1 = sha1_tth[0];
-								file.hash.tree_tiger = sha1_tth[1];
-								file.hash.bitprint = urn_data;
-							}
-						break;
-					}
-				break;
+					parse_urn(urn, urn_data, file)
+					break;
+				case "x.ed2k.p":
+					(file.hash_list = file.hash_list || {}).ed2k = data.split(":");
+					break;
 			}
 		})
 		return file;
@@ -198,11 +228,33 @@ ed2k://|file|ruwiki-20141114-pages-meta-current.xml.bz2|2981763794|0218392e98873
 			if (file.hash.aich){
 				link.push("h=" + file.hash.aich)
 			}
+			
+			if (file.hash_list && file.hash_list.ed2k){
+				link.push("p=" + file.hash_list.ed2k.join(":"))
+			}
+			
 			if (file.url){
 				for (var i=0; i < file.url.length; i++){
 					link.push("s=" + encodeURIComponent(file.url[i]))
 				}
 			}
+			
+			if (file.collection){
+				for (var i=0; i < file.collection.length; i++){
+					link.push("f=" + encodeURIComponent(file.collection[i]))
+				}
+			}
+			
+			if (file.xurl){
+				link.push("/|sources," + file.xurl.map(
+					function (xurl){
+						var matches = (/ed2kftp\:\/\/([^\/]+)\/[a-z0-9]+\/[0-9]+\//gmi).exec(xurl)
+						if (matches)
+							return matches[1];
+					}
+				).join(","))
+			}
+			
 			link.push("/")
 			return link.join("|")
 		}
@@ -222,10 +274,32 @@ magnet:?xt=urn:ed2k:0218392e98873112284de6913efee0df&xl=2981763794&dn=ruwiki-201
 		var magnet = ["magnet:?"]
 		var amp = false
 		if (!file) return;
-		if (file.hash && file.hash.ed2k){
-			magnet.push("xt=urn:ed2k:")
-			magnet.push(file.hash.ed2k)
-			amp = true;
+		if (file.hash){
+			if (file.hash.btih){
+				magnet.push("xt=urn:btih:")
+				magnet.push(file.hash.btih)
+				amp = true;
+			}
+			if (file.hash.sha1 && file.hash.tree_tiger){
+				if (amp) magnet.push("&"); else amp = true;
+				magnet.push("xt=urn:bitprint:")
+				magnet.push(file.hash.sha1)
+				magnet.push(".")
+				magnet.push(file.hash.tree_tiger)
+			}else if(file.hash.sha1){
+				if (amp) magnet.push("&"); else amp = true;
+				magnet.push("xt=urn:sha1:")
+				magnet.push(file.hash.sha1)
+			}else if(file.hash.tree_tiger){
+				if (amp) magnet.push("&"); else amp = true;
+				magnet.push("xt=urn:tree:tiger:")
+				magnet.push(file.hash.tree_tiger)
+			}
+			if (file.hash.ed2k){
+				if (amp) magnet.push("&"); else amp = true;
+				magnet.push("xt=urn:ed2k:")
+				magnet.push(file.hash.ed2k)
+			}
 		}
 		if (file.size) {
 			if (amp) magnet.push("&"); else amp = true;
@@ -243,26 +317,19 @@ magnet:?xt=urn:ed2k:0218392e98873112284de6913efee0df&xl=2981763794&dn=ruwiki-201
 				magnet.push("xt=urn:aich:")
 				magnet.push(file.hash.aich)
 			}
-			if (file.hash.sha1 && file.hash.tree_tiger){
+			if (file.hash.ipfs){
 				if (amp) magnet.push("&"); else amp = true;
-				magnet.push("xt=urn:bitprint:")
-				magnet.push(file.hash.sha1)
-				magnet.push(".")
-				magnet.push(file.hash.tree_tiger)
-			}else if(file.hash.sha1){
-				if (amp) magnet.push("&"); else amp = true;
-				magnet.push("xt=urn:sha1:")
-				magnet.push(file.hash.sha1)
-			}else if(file.hash.tree_tiger){
-				if (amp) magnet.push("&"); else amp = true;
-				magnet.push("xt=urn:tree:tiger:")
-				magnet.push(file.hash.tree_tiger)
+				magnet.push("xt=urn:ipfs:")
+				magnet.push(file.hash.ipfs)
 			}
-			if (file.hash.btih){
+		}
+		if (file.urns){
+			file.urns.map((urn)=>{
 				if (amp) magnet.push("&"); else amp = true;
-				magnet.push("xt=urn:btih:")
-				magnet.push(file.hash.btih)
-			}
+				magnet.push("xt=")
+				magnet.push(urn)
+				return urn;
+			})
 		}
 		if (file.trackers){
 			for (var i=0; i < file.trackers.length; i++){
