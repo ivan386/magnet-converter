@@ -202,16 +202,16 @@ magnet:?xt=urn:tree:tiger:JNOANHGPELY63I2OMSPQ3J73AS2P4AWB5MTBJCQ&xl=2981763794&
 			magnet.push("&dn=");
 			magnet.push(encodeURIComponent(file.name));
 		}
-		if (file.xurl){
-			for (var i=0; i < file.xurl.length; i++){
-				magnet.push("&xs=");
-				magnet.push(file.xurl[i]);
-			}
-		}
 		if (file.description_url){
 			for (var i=0; i < file.description_url.length; i++){
 				magnet.push("&x.do=");
 				magnet.push(encodeURIComponent(file.description_url[i]));
+			}
+		}
+		if (file.xurl){
+			for (var i=0; i < file.xurl.length; i++){
+				magnet.push("&xs=");
+				magnet.push(file.xurl[i]);
 			}
 		}
 		return magnet.join("");
