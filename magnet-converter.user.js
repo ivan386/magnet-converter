@@ -59,7 +59,7 @@ javascript:
 			case "urn:btih:": /* BitTorrent Info Hash (Hex, Base32) */
 				if (urn_data.length < 40)
 					file.hash.btih = base32_to_hex(urn_data);
-				else
+				else 
 					file.hash.btih = urn_data;
 			break;
 			case "urn:ipfs:": /* InterPlanetary File System мультихеш */
@@ -353,7 +353,7 @@ magnet:?xt=urn:ed2k:0218392e98873112284de6913efee0df&xl=2981763794&dn=ruwiki-201
 				if (amp) magnet.push("&"); else amp = true;
 				if (as || !(file.hash && file.hash.btih))
 					magnet.push("as=");
-				else
+				else 
 					magnet.push("ws=");
 				magnet.push(encodeURIComponent(file.url[i]));
 			}
@@ -416,7 +416,7 @@ magnet:?xt=urn:ed2k:0218392e98873112284de6913efee0df&xl=2981763794&dn=ruwiki-201
 
 			if (val <= 7)
 				val += 24;
-			else
+			else 
 				val -= 10;
 			
 			number = ((number << 5) | val) & 255;
@@ -543,7 +543,7 @@ data:application/x-bittorrent;,d4:infod6:lengthi10826029e4:name23:mediawiki-1.15
 			if( magnet_index > -1 )
 				magnet_link = try_decode(link.href.substr(magnet_index));
 		}
-		else
+		else 
 			magnet_link = link.href.substr(magnet_index);
 		
 		if (magnet_index > -1){
