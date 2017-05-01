@@ -227,6 +227,8 @@
 						file.hash.ipfs = urn_data;
 					break;
 					case "urn:tree:tiger:":
+					case "urn:tree:tiger/:":
+					case "urn:ttroot:":
 						file.hash.tree_tiger = urn_data;
 					break;
 					case "urn:bitprint:":
@@ -245,7 +247,7 @@
 			
 			function parse_magnet(params, file){
 				if (!file) file = {}
-				params.replace(/([a-z0-9\.]+)=((([a-z0-9\.]+:)*)([^&]+))&?/gmi,
+				params.replace(/([a-z0-9\.]+)=((([a-z0-9\/\.]+:)*)([^&]+))&?/gmi,
 				function(all, name, data, urn, _, urn_data){
 					data = try_decode(data)
 					switch (name){
@@ -598,7 +600,8 @@
 				var mre = /[^\s]*magnet:\?([^\s]+)/gmi
 				var hre = /https?:\/\/[\S]*?\/([^\s\/]+)\/?$/gmi
 				var dre = /dchub:\/\/[\S]+/gmi
-				var urn = /(urn:([a-z0-9\.]+:)*)([^&\s]+)/gmi
+				var urnre = /(urn:([a-z0-9\/\.]+:)*)([^&\s]+)/gmi
+				var ipfshre = /Qm[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{44}/gmi
 				var file = {}
 				text.replace(ere, function(all, name, size, hash, params, sources){
 					file.name = try_decode(name);
@@ -617,9 +620,13 @@
 				}).replace(dre, function (xurl){
 					(file.xurl = file.xurl || []).push(xurl)
 					return "";
-				}).replace(urn, function (all, urn_name, _, urn_data){
-					console.log(urn_name, urn_data)
-					parse_urn(urn_name, urn_data, file)
+				}).replace(urnre, function (all, urn_name, _, urn_data){
+					console.log(urn_name, urn_data);
+					parse_urn(urn_name, urn_data, file);
+					return "";
+				}).replace(ipfshre, function (ipfs){
+					console.log(ipfs);
+					(file.hash = file.hash || []).ipfs = ipfs;
 					return "";
 				});
 				return file
