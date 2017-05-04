@@ -32,6 +32,7 @@
 			a#link[href*="=urn:tree:tiger:"] ~ .tree_tiger,
 			a#link[href*="=urn:ed2k:"] ~ .ed2k,
 			a#link[href*="=urn:ed2khash:"] ~ .ed2k,
+			a#link[href*="=urn:ipfs:"] ~ .ipfs,
 			a#link[href*="as="] ~ #direct_links > .url,
 			a#link[href*="ws="] ~ #direct_links > .url,
 			a#link[href*="xs="] ~ #p2p_links > .xurl,
@@ -150,6 +151,7 @@
 		<a target="_blank" class="btdigg_search btih">Информация о торренте (Torrent info) BTDIG</a>
 		<a target="_blank" class="torcache_torrent btih">Скачать торрент из хранилища торрентов (Download torrent file from torrent cache)</a>
 		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k (Ed2k file statistic)</a>
+		<a target="_blank" class="ipfs-link ipfs">Ссылка на файл/каталог на сайте ipfs.io (Link to the file/directory on the site ipfs.io)</a>
 		
 		<p>В поле ниже можно скопировать <a href="https://ru.wikipedia.org/wiki/Magnet-ссылка">магниты</a> на один и тотже файл из разних p2p клиентов (Например из: <a href="https://ru.wikipedia.org/wiki/Shareaza">Shareaza</a>, <a href="https://ru.wikipedia.org/wiki/Direct_Connect">Direct Connect</a> и <a href="https://ru.wikipedia.org/wiki/BitTorrent_(протокол)">BitTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="https://ru.wikipedia.org/wiki/EDonkey2000_(сеть)">EDonkey2000(eMule)</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p>
 			
@@ -196,7 +198,7 @@
 			
 			function detect_ipfs_hash(url, file)
 			{
-				url.replace(/\/ipfs\/([123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+)/,function(all, hash){
+				url.replace(/\/ipfs\/((zb2rh|Qm)[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{44})/,function(all, hash){
 					if (!file.hash) file.hash = {};
 					file.hash.ipfs = hash;
 				})
@@ -601,7 +603,7 @@
 				var hre = /https?:\/\/[\S]*?\/([^\s\/]+)\/?$/gmi
 				var dre = /dchub:\/\/[\S]+/gmi
 				var urnre = /(urn:([a-z0-9\/\.]+:)*)([^&\s]+)/gmi
-				var ipfshre = /Qm[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{44}/gmi
+				var ipfshre = /(zb2rh|Qm)[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{44}/gmi
 				var file = {}
 				text.replace(ere, function(all, name, size, hash, params, sources){
 					file.name = try_decode(name);
@@ -748,6 +750,11 @@
 						if (file.hash.ed2k)
 							set_links("ed2k-stats", 
 								make_link("https://ed2k.shortypower.org/?hash=", file.hash.ed2k))
+						
+						if (file.hash.ipfs)
+							set_links("ipfs-link", 
+								make_link("https://ipfs.io/ipfs/", file.hash.ipfs))
+								
 					}
 					set_urls(file.url,"direct_links", "url")
 					set_urls(file.xurl,"p2p_links", "xurl")
