@@ -38,10 +38,12 @@ javascript:
 
 	function detect_ipfs_hash(url, file)
 	{
-		url.replace(/\/ipfs\/([123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+)/,function(all, hash){
+		if (file.hash && file.hash.ipfs) return;
+		url.replace(/\/ipfs\/((zb2rh|Qm)[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{44})/,
+		 function(all, hash){
 			if (!file.hash) file.hash = {};
 			file.hash.ipfs = hash;
-		});
+		 });
 		return;
 	}
 
@@ -51,6 +53,9 @@ javascript:
 		switch (urn_name){
 			case "urn:sha1:": /* sha1 хеш  файла (Base32) */
 				file.hash.sha1 = urn_data;
+			break;
+			case "urn:sha256:":
+				file.hash.sha256 = urn_data;
 			break;
 			case "urn:ed2k:": /* ed2k хеш  файла (Hex) */
 			case "urn:ed2khash:":
@@ -69,6 +74,8 @@ javascript:
 				file.hash.ipfs = urn_data;
 			break;
 			case "urn:tree:tiger:": /* Tiger Tree Hash (TTH) файла (Base32) */
+			case "urn:tree:tiger/:":
+			case "urn:ttroot:":
 				file.hash.tree_tiger = urn_data;
 			break;
 			case "urn:bitprint:": /* [SHA1].[TTH] (Base32) */
@@ -87,7 +94,7 @@ javascript:
 	
 	function parse_magnet(params, file){
 		if (!file) file = {};
-		params.replace(/([a-z0-9\.]+)=((([a-z0-9\.]+:)*)([^&]+))&?/gmi,
+		params.replace(/([a-z0-9\.]+)=((([a-z0-9\/\.]+:)*)([^&]+))&?/gmi,
 		function(all, name, data, urn, _, urn_data){
 			data = try_decode(data);
 			switch (name){
@@ -330,6 +337,11 @@ magnet:?xt=urn:ed2k:0218392e98873112284de6913efee0df&xl=2981763794&dn=ruwiki-201
 				if (amp) magnet.push("&"); else amp = true;
 				magnet.push("xt=urn:aich:");
 				magnet.push(file.hash.aich);
+			}
+			if (file.hash.sha256){
+				if (amp) magnet.push("&"); else amp = true;
+				magnet.push("xt=urn:sha256:");
+				magnet.push(file.hash.sha256);
 			}
 			if (file.hash.ipfs){
 				if (amp) magnet.push("&"); else amp = true;
