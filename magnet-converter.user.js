@@ -39,7 +39,7 @@ javascript:
 	function detect_ipfs_hash(url, file)
 	{
 		if (file.hash && file.hash.ipfs) return;
-		url.replace(/\/ipfs\/((zb2rh|Qm)[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{44})/,
+		url.replace(/\/ipfs\/((zb2rh|Qm)[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{44})\/?$/,
 		 function(all, hash){
 			if (!file.hash) file.hash = {};
 			file.hash.ipfs = hash;
@@ -47,15 +47,27 @@ javascript:
 		return;
 	}
 
+	function set_sha1(sha1, file)
+	{
+		file.hash.sha1 = sha1;
+		if (!file.hash.aich && file.size && file.size <= 184320)
+			file.hash.aich = sha1;
+	}
+	
 	function parse_urn(urn_name, urn_data, file)
 	{
 		if (!file.hash) file.hash = {};
 		switch (urn_name){
 			case "urn:sha1:": /* sha1 хеш  файла (Base32) */
-				file.hash.sha1 = urn_data;
+				set_sha1(urn_data, file);
 			break;
 			case "urn:sha256:":
 				file.hash.sha256 = urn_data;
+			break;
+			case "urn:md4:":
+				file.hash.md4 = urn_data;
+				if (!file.hash.ed2k && file.size && file.size < 9728000)
+					file.hash.ed2k = urn_data;
 			break;
 			case "urn:ed2k:": /* ed2k хеш  файла (Hex) */
 			case "urn:ed2khash:":
@@ -63,6 +75,8 @@ javascript:
 			break;
 			case "urn:aich:": /* Advanced Intelligent Corruption  */
 				file.hash.aich = urn_data;
+				if (!file.hash.sha1 && file.size && file.size <= 184320)
+					set_sha1(urn_data, file);
 			break;
 			case "urn:btih:": /* BitTorrent Info Hash (Hex, Base32) */
 				if (urn_data.length < 40)
@@ -81,7 +95,7 @@ javascript:
 			case "urn:bitprint:": /* [SHA1].[TTH] (Base32) */
 				var sha1_tth = urn_data.split(".");
 				if (sha1_tth && sha1_tth.length == 2){
-					file.hash.sha1 = sha1_tth[0];
+					set_sha1(sha1_tth[0], file);
 					file.hash.tree_tiger = sha1_tth[1];
 					file.hash.bitprint = urn_data;
 				};
@@ -347,6 +361,11 @@ magnet:?xt=urn:ed2k:0218392e98873112284de6913efee0df&xl=2981763794&dn=ruwiki-201
 				if (amp) magnet.push("&"); else amp = true;
 				magnet.push("xt=urn:ipfs:");
 				magnet.push(file.hash.ipfs);
+			}
+			if (file.hash.md4){
+				if (amp) magnet.push("&"); else amp = true;
+				magnet.push("xt=urn:md4:");
+				magnet.push(file.hash.md4);
 			}
 		}
 		if (file.urns){
