@@ -17,7 +17,7 @@
 		<style>
 			.btih, .bitprint, .md5, .sha1, .tree_tiger, 
 			.ed2k, a#link, .urn, .url, .xurl, durl,
-			.hurn, .hurl, .hxurl, .hdurls, .ifmagnet, .collections, .ipfs, .sha256
+			.hurn, .hurl, .hxurl, .hdurls, .ifmagnet, .collections, .ipfs, .sha256, .torrent_file_urls
 			{display: none;}
 			
 			a#link[href*="magnet:?"] ~ #demo,
@@ -36,9 +36,12 @@
 			a#link[href*="=urn:ipfs:"] ~ .ipfs,
 			a#link[href*="as="] ~ #direct_links > .url,
 			a#link[href*="ws="] ~ #direct_links > .url,
+			a#link[href*="as="] ~ .url,
+			a#link[href*="ws="] ~ .url,
 			a#link[href*="xs="] ~ #p2p_links > .xurl,
 			a#link[href*="xs="] ~ #description_links > .durl,
 			a#link[href*="mt="] ~ #p2p_collections > .collection,
+			a#link[href*="fl="] ~ #torrent_file_urls > .torrent_file_url,
 			#this_page_links > a
 			{
 				display: list-item;
@@ -52,7 +55,8 @@
 			a#link[href*="as="] ~ .hurl,
 			a#link[href*="ws="] ~ .hurl,
 			a#link[href*="xs="] ~ .hxurl,
-			a#link[href*="mt="] ~ .collections{
+			a#link[href*="mt="] ~ .collections,
+			a#link[href*="fl="] ~ .torrent_file_urls{
 				display: block;
 			}
 			
@@ -126,6 +130,8 @@
 		<div class="hxurl" id="p2p_links"></div>
 		<p class="collections">P2P Коллекции (p2p collections):</p>
 		<div class="collections" id="p2p_collections"></div>
+		<p class="torrent_file_urls">Прямые ссылки на торрент файл (Direct links to the torrent file):</p>
+		<div class="torrent_file_urls" id="torrent_file_urls"></div>
 		<p class="hdurls">Страницы описания (description pages):</p>
 		<div class="hdurls" id="description_links"></div>
 		<p>Ссылки на эту страницу (links to this page):</p>
@@ -153,7 +159,7 @@
 		<a target="_blank" class="torcache_torrent btih">Скачать торрент из хранилища торрентов (Download torrent file from torrent cache)</a>
 		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k (Ed2k file statistic)</a>
 		<a target="_blank" class="ipfs-link ipfs">Ссылка на файл/каталог на сайте ipfs.io (Link to the file/directory on the site ipfs.io)</a>
-		<a target="_blank" class="hash-archive ipfs sha1 md5 sha256">Поиск ссылки на файл/каталог на сайте hash-archive.org (Search link to the file/directory on the site hash-archive.org)</a>
+		<a target="_blank" class="hash-archive url ipfs bitprint sha1 md5 sha256">Поиск ссылки на файл/каталог на сайте hash-archive.org (Search link to the file/directory on the site hash-archive.org)</a>
 		
 		<p>В поле ниже можно скопировать <a href="https://ru.wikipedia.org/wiki/Magnet-ссылка">магниты</a> на один и тотже файл из разних p2p клиентов (Например из: <a href="https://ru.wikipedia.org/wiki/Shareaza">Shareaza</a>, <a href="https://ru.wikipedia.org/wiki/Direct_Connect">Direct Connect</a> и <a href="https://ru.wikipedia.org/wiki/BitTorrent_(протокол)">BitTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="https://ru.wikipedia.org/wiki/EDonkey2000_(сеть)">EDonkey2000(eMule)</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p>
 			
@@ -738,7 +744,7 @@
 				var new_container = document.createElement(container.tagName)
 				for (var i=0; i < urls.length; i++){
 					var link =  document.createElement("a")
-					var name = document.createTextNode(urls[i])
+					var name = document.createTextNode(try_decode(urls[i]))
 					link.href = urls[i]
 					link.className = urls_class
 					link.appendChild(name)
@@ -760,6 +766,15 @@
 					set_links("shareaza_magnet", full_magnet(file, true))
 					set_links("ed2k_link", ed2k_link(file))
 					set_links("micro_torrent", make_micro_torrent(file), file.name + ".micro.torrent")
+					
+					if (file.hash && file.hash.ipfs)
+							set_links("hash-archive", 
+								make_link("https://hash-archive.org/sources/", file.hash.ipfs))
+								
+					if (file.url && file.url.length)
+							set_links("hash-archive", 
+								make_link("https://hash-archive.org/history/", file.url[0]))
+								
 					
 					if (file.hash){
 					
@@ -807,14 +822,12 @@
 						else if (file.hash.sha256)
 							set_links("hash-archive", 
 								make_link("https://hash-archive.org/sources/magnet:?xt=urn:sha256:", file.hash.sha256))		
-						else if (file.hash.ipfs)
-							set_links("hash-archive", 
-								make_link("https://hash-archive.org/sources/", file.hash.ipfs))
 								
 					}
 					set_urls(file.url,"direct_links", "url")
 					set_urls(file.xurl,"p2p_links", "xurl")
 					set_urls(file.collection,"p2p_collections", "collection")
+					set_urls(file.torrent_file_url,"torrent_file_urls", "torrent_file_url")
 					set_urls(file.description_url,"description_links", "durl")
 				}
 
@@ -919,6 +932,8 @@
 				
 				"dchub://allavtovo.ru",
 				"magnet:?x.do=https%3A%2F%2Fru.wikipedia.org%2Fwiki%2FMagnet-%25D1%2581%25D1%2581%25D1%258B%25D0%25BB%25D0%25BA%25D0%25B0",
+				
+				"magnet:?fl=http%3A%2F%2Fipfs.io%2Fipfs%2FQmUvPUEFyXt5fySa8nKEtZgjb6Q8JLPu2ExVPQiMScMb4V%2FMagnet-%25D1%2581%25D1%2581%25D1%258B%25D0%25BB%25D0%25BA%25D0%25B0.txt.micro.torrent",
 				
 				].join("\n\n")
 			}
