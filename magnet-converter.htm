@@ -681,14 +681,17 @@
 			function raw_length(encodedURI){
 				var count = 0;
 				var index = 0;
-				for (index = encodedURI.indexOf("%"); index>=0 && (++count) ; index = encodedURI.indexOf("%", index+1));
-				return encodedURI.length-count*2
+				for ( index = encodedURI.indexOf("%");
+					  index >= 0;
+					  index = encodedURI.indexOf("%", index+1) )
+					++count;
+				return encodedURI.length - count * 2;
 			}
 			
 			function push_string(string, to_list){
-				to_list.push(raw_length(string))
-				to_list.push(":")
-				to_list.push(string)
+				to_list.push(raw_length(string));
+				to_list.push(":");
+				to_list.push(string);
 			}
 			
 			function make_micro_torrent(file){
@@ -723,6 +726,8 @@
 					if (sha1.length < 40)
 						sha1 = base32_to_hex(sha1);
 					sha1 = sha1.replace(/[0-9A-Fa-f]{2}/g,"%$&")
+					push_string(sha1, torrent)
+					torrent.push("4:sha1")
 					push_string(sha1, torrent)
 					torrent.push("e")
 					if (file.url && file.url.length>0){
