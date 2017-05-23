@@ -138,7 +138,8 @@
 		<div id="this_page_links">
 		<a href="#magnet:?" class="full_link">полная (full link)</a>
 		<a href="/#magnet:?" class="short_link">короткая(short link)</a>
-		<a href="/magnet?" class="short_msg_link">короткая для передачи в сообщении(short link to send in messenger)</a>
+		<a href="/#magnet?" class="short_msg_link_private">1. короткая для передачи в сообщении(short link to send in messenger)</a>
+		<a href="/magnet?" class="short_msg_link">2. короткая для передачи в сообщении(short link to send in messenger)</a>
 		<a href="http://magnet0.tk#magnet:?" class="shorter_link">ещё короче(shorter link)</a>
 		<a href="http://магнит.tk#magnet:?" class="shorter_ru_link">ещё чуть короче но по русски ))(shorter link on russian domain)</a>
 		<a href="http://и3.tk#magnet:?" class="shortest_ru_link">коротко по русски ))(shortest link on russian domain)</a>
@@ -847,6 +848,7 @@
 					
 					set_links("full_link", hash)
 					set_links("short_link", "/" + hash)
+					set_links("short_msg_link_private", "/" + hash.replace("#magnet:?", "#magnet?"))
 					set_links("short_msg_link", "/" + hash.replace("#magnet:?", "magnet?"))
 					set_links("shorter_link", hash.replace("#magnet:?", "http://magnet0.tk#magnet:?"))
 					set_links("magic_link", hash.replace("#magnet:?", "http://magnet-xt-urn.tk#magnet:?"))
@@ -871,9 +873,21 @@
 			if(hash.substr(1,12) == "magnet%3A%3F")
 				hash = try_decode(hash);
 				
+			if(hash.substr(1,7) == "magnet?")
+			{
+				hash = "#magnet:?" + hash.substr(8);
+				document.location.hash = hash;
+			}
+				
 			if(hash.substr(1,2) == ":?")
 			{
 				hash = "#magnet" + hash.substr(1);
+				document.location.hash = hash;
+			}
+			
+			if(hash.substr(1,1) == "?")
+			{
+				hash = "#magnet:" + hash.substr(1);
 				document.location.hash = hash;
 			}
 			
