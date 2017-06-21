@@ -26,6 +26,7 @@
 			
 			a#link[href*="magnet:?"] ~ .ifmagnet{display: initial}
 			
+			a#link[href*="=urn:"] ~ .hurn > a,
 			a#link[href*="=urn:btih:"] ~ .btih,
 			a#link[href*="=urn:bitprint:"] ~ .bitprint,
 			a#link[href*="=urn:sha1:"] ~ .sha1,
@@ -38,6 +39,7 @@
 			a#link[href*="ws="] ~ #direct_links > .url,
 			a#link[href*="as="] ~ .url,
 			a#link[href*="ws="] ~ .url,
+			a#link[href*="tr="] ~ .hturls > a,
 			a#link[href*="xs="] ~ #p2p_links > .xurl,
 			a#link[href*="xs="] ~ #description_links > .durl,
 			a#link[href*="mt="] ~ #p2p_collections > .collection,
@@ -51,6 +53,7 @@
 			
 			
 			a#link[href*="x.do="] ~ .hdurls,
+			a#link[href*="tr="] ~ .hturls,
 			a#link[href*="=urn:"] ~ .hurn,
 			a#link[href*="as="] ~ .hurl,
 			a#link[href*="ws="] ~ .hurl,
@@ -134,6 +137,10 @@
 		<div class="torrent_file_urls" id="torrent_file_urls"></div>
 		<p class="hdurls">Страницы описания (description pages):</p>
 		<div class="hdurls" id="description_links"></div>
+		<p class="hturls">Трекеры (trackers):</p>
+		<div class="hturls" id="tracker_links"></div>
+		<p class="hurn">Список хешей (URN list):</p>
+		<div class="hurn" id="urn_links"></div>
 		<p>Ссылки на эту страницу (links to this page):</p>
 		<div id="this_page_links">
 		<a href="#magnet:?" class="full_link">полная (full link)</a>
@@ -148,7 +155,7 @@
 		</div>
 		
 		
-		<p class="hurn">Сторонние сервисы (Third-party services):</p>
+		<p class="hurn hurl">Сторонние сервисы (Third-party services):</p>
 		
 		<a target="_blank" class="virus_check bitprint sha1 md5 sha256">Проверка на вирусы (Virus check)</a>
 
@@ -285,6 +292,11 @@
 						case "dn":
 							file.name = data;
 							break;
+						case "sz":
+						case "fs":
+/* 
+https://sourceforge.net/p/shareaza/code/HEAD/tree/trunk/shareaza/ShareazaURL.cpp#671
+*/
 						case "xl":
 							file.size = data;
 							break;
@@ -294,6 +306,24 @@
 						case "tr":
 							if (!file.trackers) file.trackers = [];
 							file.trackers.push(data);
+							break;
+						case "x.pe": 
+/* 
+https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21d1/src/magnet_uri.cpp#L238 
+*/						
+						if (!file.peers) file.peers = [];
+							file.peers.push(data);
+							break;
+						case "bn":
+/* 
+https://sourceforge.net/p/shareaza/code/HEAD/tree/trunk/shareaza/ShareazaURL.cpp#683 
+*/
+						case "dht":
+/* 
+https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21d1/src/magnet_uri.cpp#L254 
+*/		
+							if (!file.dht) file.dht = [];
+							file.dht.push(data);
 							break;
 						case "mt":	
 							file.collection = file.collection || [];
@@ -349,6 +379,25 @@
 					for (var i=0; i < file.url.length; i++){
 						magnet.push("&ws=")
 						magnet.push(encodeURIComponent(file.url[i]))
+					}
+				}
+				if (file.xurl){
+					file.xurl.map(
+						function (xurl){
+							var matches = (/btc\:\/\/([^\/]+)\/[a-z0-9]*\/[a-z0-9]+\//gmi).exec(xurl)
+							if (matches)
+								magnet.push("&x.pe=" + matches[1]);
+						}
+					)
+				}
+				if (file.peers){
+					for (var i=0; i < file.peers.length; i++){
+						magnet.push("&x.pe=" + file.peers[i]);
+					}
+				}
+				if (file.dht){
+					for (var i=0; i < file.dht.length; i++){
+						magnet.push("&dht=" + file.dht[i]);
 					}
 				}
 				if (file.torrent_file_url){
@@ -433,7 +482,7 @@
 				}
 			}
 			
-			function full_magnet(file, as){
+			function full_magnet(file, shareaza){
 				var magnet = ["magnet:?"]
 				var amp = false
 				if (!file) return;
@@ -514,7 +563,7 @@
 				if (file.url){
 					for (var i=0; i < file.url.length; i++){
 						if (amp) magnet.push("&"); else amp = true;
-						if (as || !(file.hash && file.hash.btih))
+						if (shareaza || !(file.hash && file.hash.btih))
 							magnet.push("as=");
 						else
 							magnet.push("ws=");
@@ -538,6 +587,22 @@
 						if (amp) magnet.push("&"); else amp = true;
 						magnet.push("fl=")
 						magnet.push(encodeURIComponent(file.torrent_file_url[i]))
+					}
+				}
+				if (file.peers){
+					for (var i=0; i < file.peers.length; i++){
+						if (shareaza)
+							magnet.push("&xs=btc://" + file.peers[i] + "//" + file.hash.btih );
+						else
+							magnet.push("&x.pe=" + file.peers[i]);
+					}
+				}
+				if (file.dht){
+					for (var i=0; i < file.dht.length; i++){
+						if (shareaza)
+							magnet.push("&bn=" + file.dht[i]);
+						else
+							magnet.push("&dht=" + file.dht[i]);
 					}
 				}
 				if (file.collection){
@@ -641,7 +706,8 @@
 			function parse_text(text){
 				var ere = /ed2k:\/\/\|file\|([^\|]+)\|([0-9]+)\|([a-z0-9]+)\|(([a-z]=[^\|]+\|)*)(\/\|sources,([^\|]+)\|){0,1}\//gmi
 				var mre = /[^\s]*magnet:\?([^\s]+)/gmi
-				var hre = /https?:\/\/[\S]*?\/([^\s\/]+)\/?$/gmi
+				var ure = /udp:\/\/[^\s#]*\/([^\s\/&:#?]*)[&?]?[^\s\/#]*/gmi
+				var hre = /https?:\/\/[^\s#]*\/([^\s\/&:#?]*)[&?]?[^\s\/#]*/gmi
 				var dre = /dchub:\/\/[\S]+/gmi
 				var urnre = /(urn:([a-z0-9\/\.]+:)*)([^&\s]+)/gmi
 				var ipfshre = /(zb2rh|Qm)[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{44}/gm
@@ -649,15 +715,37 @@
 				text.replace(ere, function(all, name, size, hash, params, sources){
 					file.name = try_decode(name);
 					file.size = size;
-					(file.hash = file.hash || []).ed2k = hash;
+					(file.hash = file.hash || {}).ed2k = hash;
 					parse_ed2k_parts(arguments[4], arguments[7], file);
 					return "";
 				}).replace(mre, function (all, params){
 					parse_magnet(params, file);
 					return "";
+				}).replace(ure, function (url, name){
+					name = try_decode(name);
+					if ( name == "announce" || name == "announce.php" ){
+						(file.trackers = file.trackers || []).push(url);
+						return ""
+					}
 				}).replace(hre, function (url, name){
+					name = try_decode(name);
+					if ( name && name.length > 0 ){
+						var torrent_url = name.indexOf(".torrent");
+						if ( !file.name || file.name.indexOf(".torrent") < file.name.length - 8 )
+							if ( torrent_url > 0 && name.length - 8 == torrent_url ){
+								(file.torrent_file_url = file.torrent_file_url || []).push(url);
+								return ""
+							}
+							
+						if ( name == "announce" || name == "announce.php" ){
+							(file.trackers = file.trackers || []).push(url);
+							return ""
+						}
+							
+						if (!file.name) file.name = name;
+					}
+					
 					(file.url = file.url || []).push(url)
-					if (!file.name && name) file.name = name;
 					detect_ipfs_hash(url, file)
 					return "";
 				}).replace(dre, function (xurl){
@@ -669,7 +757,7 @@
 					return "";
 				}).replace(ipfshre, function (ipfs){
 					console.log(ipfs);
-					(file.hash = file.hash || []).ipfs = ipfs;
+					(file.hash = file.hash || {}).ipfs = ipfs;
 					return "";
 				});
 				return file
@@ -731,6 +819,26 @@
 					torrent.push("4:sha1")
 					push_string(sha1, torrent)
 					torrent.push("e")
+					if (file.dht && file.dht.length>0){
+						torrent.push("5:nodesl")
+						for (var i = 0; file.dht.length>i; i++){
+							torrent.push("l")
+							var port_start = file.dht[i].lastIndexOf(":")
+							if (port_start > 0){
+								var port = file.dht[i].substring(port_start + 1)
+								port = parseInt(port)
+								if (port > 0){
+									var address = file.dht[i].substring(0, port_start)
+									address = encodeURIComponent(decodeURIComponent(address))
+									push_string(address, torrent)
+									torrent.push("i" + port + "e")
+									torrent.push("e")
+								}
+							}
+
+						}
+						torrent.push("e")
+					}
 					if (file.url && file.url.length>0){
 						torrent.push("8:url-listl")
 						for (var i = 0; file.url.length>i; i++){
@@ -760,6 +868,50 @@
 				new_container.id = container.id
 				new_container.className = container.className
 				
+			}
+			
+			function to_urns(file){
+				if (!file.hash)
+					return;
+					
+				var urn_list = [];
+				
+				if ( file.hash.btih ) 
+					urn_list.push("urn:btih:" + file.hash.btih);
+					
+				if (file.hash.sha1 && file.hash.tree_tiger){
+					urn_list.push("urn:bitprint:"+
+					file.hash.sha1+"."+file.hash.tree_tiger
+					)
+				}else if(file.hash.sha1){
+					urn_list.push("urn:sha1:"+file.hash.sha1)
+				}else if(file.hash.tree_tiger){
+					urn_list.push("urn:tree:tiger:"+file.hash.tree_tiger)
+				}
+				
+				if (file.hash.ed2k)
+					urn_list.push("urn:ed2k:"+file.hash.ed2k);
+				
+				if (file.hash.aich)
+					urn_list.push("urn:aich:"+file.hash.aich);
+				
+				if (file.hash.sha256)
+					urn_list.push("xt=urn:sha256:"+file.hash.sha256);
+					
+				if (file.hash.ipfs)
+					urn_list.push("urn:ipfs:"+file.hash.ipfs);
+					
+				if (file.hash.md4)
+					urn_list.push("xt=urn:md4:"+file.hash.md4);
+					
+				if (file.urns){
+					file.urns.map(function(urn){
+						urn_list.push(urn)
+					})
+				}
+				
+				if ( urn_list.length > 0 )
+					return urn_list;
 			}
 
 			function set_file(file){
@@ -835,6 +987,8 @@
 					set_urls(file.collection,"p2p_collections", "collection")
 					set_urls(file.torrent_file_url,"torrent_file_urls", "torrent_file_url")
 					set_urls(file.description_url,"description_links", "durl")
+					set_urls(file.trackers,"tracker_links", "turl")
+					set_urls(to_urns(file),"urn_links", "urn")
 				}
 
 				
@@ -937,13 +1091,14 @@
 				document.getElementById("link").href = magnet
 				magnet_mix.value = magnet
 				set_file(file)
+				console.log(file)
 			}
 			
 			function example_on_click(){
 				document.getElementById("magnet_mix").value = [
-				"magnet:?xl=41412&dn=Magnet-%D1%81%D1%81%D1%8B%D0%BB%D0%BA%D0%B0.txt&xt=urn:tree:tiger:maxvzvawiidymg3uj5ihzijou35il4wzcqicpoa",
+				"magnet:?xl=41412&xt=urn:tree:tiger:maxvzvawiidymg3uj5ihzijou35il4wzcqicpoa&dn=Magnet-%D1%81%D1%81%D1%8B%D0%BB%D0%BA%D0%B0.txt",
 				
-				"magnet:?xt=urn:btih:2F825A27112B0E5C89D20B656045920F1C10830C28",
+				"urn:btih:953edbe75de612bc966194d2ee60099b3bc1a1aa",
 
 				"ed2k://|file|Magnet-%D1%81%D1%81%D1%8B%D0%BB%D0%BA%D0%B0.txt|41412|a0a927b6f044eb27945295d1fc8366c9|h=2zder3zislgddpwa6zxj7xh7fpqlvi7p|/",
 				
@@ -952,10 +1107,17 @@
 				"dchub://allavtovo.ru",
 				"magnet:?x.do=https%3A%2F%2Fru.wikipedia.org%2Fwiki%2FMagnet-%25D1%2581%25D1%2581%25D1%258B%25D0%25BB%25D0%25BA%25D0%25B0",
 				
-				"magnet:?fl=http%3A%2F%2Fipfs.io%2Fipfs%2FQmUvPUEFyXt5fySa8nKEtZgjb6Q8JLPu2ExVPQiMScMb4V%2FMagnet-%25D1%2581%25D1%2581%25D1%258B%25D0%25BB%25D0%25BA%25D0%25B0.txt.micro.torrent",
+				"https://ipfs.io/ipfs/QmfQCxNW9r2974xR5dXopXfQqsEvgexhza6aQgqTGL7Yh3/Magnet-ссылка.txt",
+				
+				"https://ipfs.io/ipfs/QmfQCxNW9r2974xR5dXopXfQqsEvgexhza6aQgqTGL7Yh3/Magnet-ссылка.txt.torrent",
+				
+				"http://mgtracker.org:6969/announce",
+				
+				"udp://tracker.pirateparty.gr:6969/announce"
 				
 				].join("\n\n")
 			}
+
 
 			if (window.location.hash.substr(1,8) == "magnet:?"){
 				setTimeout(function() {window.location.replace(window.location.hash.substr(1))}, 0);
