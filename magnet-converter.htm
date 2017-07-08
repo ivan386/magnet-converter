@@ -41,7 +41,7 @@
 			a#link[href*="ws="] ~ .url,
 			a#link[href*="tr="] ~ .hturls > a,
 			a#link[href*="xs="] ~ #p2p_links > .xurl,
-			a#link[href*="xs="] ~ #description_links > .durl,
+			a#link[href*="x.do="] ~ #description_links > .durl,
 			a#link[href*="mt="] ~ #p2p_collections > .collection,
 			a#link[href*="fl="] ~ #torrent_file_urls > .torrent_file_url,
 			#this_page_links > a
@@ -913,6 +913,20 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 				if ( urn_list.length > 0 )
 					return urn_list;
 			}
+			
+			function add_btc(file){
+				var xurl_list = [];
+				if (file.peers && file.hash && file.hash.btih)
+					for (var i=0; i < file.peers.length; i++)
+						xurl_list.push("btc://" + file.peers[i] + "//" + file.hash.btih );
+						
+				if (file.xurl)
+					for (var i=0; i < file.xurl.length; i++)
+						xurl_list.push(file.xurl[i]);
+
+				if ( xurl_list.length > 0 )
+					return xurl_list;
+			}
 
 			function set_file(file){
 				if(file){
@@ -983,7 +997,7 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 								
 					}
 					set_urls(file.url,"direct_links", "url")
-					set_urls(file.xurl,"p2p_links", "xurl")
+					set_urls(add_btc(file),"p2p_links", "xurl")
 					set_urls(file.collection,"p2p_collections", "collection")
 					set_urls(file.torrent_file_url,"torrent_file_urls", "torrent_file_url")
 					set_urls(file.description_url,"description_links", "durl")
