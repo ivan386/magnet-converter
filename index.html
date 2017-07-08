@@ -147,9 +147,9 @@
 		<a href="/#magnet:?" class="short_link">короткая(short link)</a>
 		<a href="/#magnet?" class="short_msg_link_private">1. короткая для передачи в сообщении(short link to send in messenger)</a>
 		<a href="/magnet?" class="short_msg_link">2. короткая для передачи в сообщении(short link to send in messenger)</a>
-		<a href="http://magnet0.tk#magnet:?" class="shorter_link">ещё короче(shorter link)</a>
-		<a href="http://магнит.tk#magnet:?" class="shorter_ru_link">ещё чуть короче но по русски ))(shorter link on russian domain)</a>
-		<a href="http://и3.tk#magnet:?" class="shortest_ru_link">коротко по русски ))(shortest link on russian domain)</a>
+		<a href="http://magn.tk#magnet:?" class="shorter_link">короче(shorter link)</a>
+		<a href="http://магнит.tk#magnet:?" class="shorter_ru_link">короче но по русски(shorter link on russian domain)</a>
+		<a href="http://м.tk#magnet:?" class="shortest_ru_link">коротко по русски(shortest link on russian domain)</a>
 		<a href="https://magnet-xt-urn.tk#magnet:?" class="magic_link">магическая ссылка(magic link)</a>
 		
 		</div>
@@ -883,9 +883,13 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 					urn_list.push("urn:bitprint:"+
 					file.hash.sha1+"."+file.hash.tree_tiger
 					)
-				}else if(file.hash.sha1){
+				}
+				
+				if(file.hash.sha1){
 					urn_list.push("urn:sha1:"+file.hash.sha1)
-				}else if(file.hash.tree_tiger){
+				}
+				
+				if(file.hash.tree_tiger){
 					urn_list.push("urn:tree:tiger:"+file.hash.tree_tiger)
 				}
 				
@@ -896,13 +900,13 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 					urn_list.push("urn:aich:"+file.hash.aich);
 				
 				if (file.hash.sha256)
-					urn_list.push("xt=urn:sha256:"+file.hash.sha256);
+					urn_list.push("urn:sha256:"+file.hash.sha256);
 					
 				if (file.hash.ipfs)
 					urn_list.push("urn:ipfs:"+file.hash.ipfs);
 					
 				if (file.hash.md4)
-					urn_list.push("xt=urn:md4:"+file.hash.md4);
+					urn_list.push("urn:md4:"+file.hash.md4);
 					
 				if (file.urns){
 					file.urns.map(function(urn){
@@ -1018,10 +1022,10 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 					set_links("short_link", "/" + hash)
 					set_links("short_msg_link_private", "/" + hash.replace("#magnet:?", "#magnet?"))
 					set_links("short_msg_link", "/" + hash.replace("#magnet:?", "magnet?"))
-					set_links("shorter_link", hash.replace("#magnet:?", "http://magnet0.tk#magnet:?"))
+					set_links("shorter_link", hash.replace("#magnet:?", "http://magn.tk#magnet:?"))
 					set_links("magic_link", hash.replace("#magnet:?", "http://magnet-xt-urn.tk#magnet:?"))
 					set_links("shorter_ru_link", hash.replace("#magnet:?", "http://магнит.tk#magnet:?"))
-					set_links("shortest_ru_link", hash.replace("#magnet:?", "http://и3.tk#magnet:?"))
+					set_links("shortest_ru_link", hash.replace("#magnet:?", "http://м.tk#magnet:?"))
 				}
 			}
 			
