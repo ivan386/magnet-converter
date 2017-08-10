@@ -17,7 +17,7 @@
 		<style>
 			.btih, .bitprint, .md5, .sha1, .tree_tiger, 
 			.ed2k, a#link, .urn, .url, .xurl, durl,
-			.hurn, .hurl, .hxurl, .hdurls, .ifmagnet, .collections, .ipfs, .sha256, .torrent_file_urls
+			.hurn, .hurl, .hxurl, .hdurls, .ifmagnet, .collections, .ipfs, .sha256, .torrent_file_urls 
 			{display: none;}
 			
 			a#link[href*="magnet:?"] ~ #demo,
@@ -35,6 +35,8 @@
 			a#link[href*="=urn:ed2k:"] ~ .ed2k,
 			a#link[href*="=urn:ed2khash:"] ~ .ed2k,
 			a#link[href*="=urn:ipfs:"] ~ .ipfs,
+			a#link[href*="/ipfs/Qm"] ~ .ipfs,
+			a#link[href*="/ipfs/zb2rh"] ~ .ipfs,
 			a#link[href*="as="] ~ #direct_links > .url,
 			a#link[href*="ws="] ~ #direct_links > .url,
 			a#link[href*="as="] ~ .url,
@@ -51,6 +53,13 @@
 				left: 20px;
 			}
 			
+			.ipfs-link-http-local,
+			.ipfs-link-https-local
+			{
+				display: none;
+				position: relative;
+				left: 20px;
+			}
 			
 			a#link[href*="x.do="] ~ .hdurls,
 			a#link[href*="tr="] ~ .hturls,
@@ -59,7 +68,11 @@
 			a#link[href*="ws="] ~ .hurl,
 			a#link[href*="xs="] ~ .hxurl,
 			a#link[href*="mt="] ~ .collections,
-			a#link[href*="fl="] ~ .torrent_file_urls{
+			a#link[href*="fl="] ~ .torrent_file_urls,
+			a#link[href*="=urn:ipfs:"] ~ p.ipfs,
+			a#link[href*="=/ipfs/Qm"] ~ p.ipfs,
+			a#link[href*="=/ipfs/zb2rh"] ~ p.ipfs{
+				position: static;
 				display: block;
 			}
 			
@@ -82,6 +95,7 @@
 			}
 			
 			#file-size{quotes: "(" ")";};
+			
 			
 		</style>
 		<script>
@@ -166,18 +180,23 @@
 		<a target="_blank" class="btdigg_search btih">Информация о торренте (Torrent info) BTDIG</a>
 		<a target="_blank" class="torcache_torrent btih">Скачать торрент из хранилища торрентов (Download torrent file from torrent cache)</a>
 		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k (Ed2k file statistic)</a>
-		<a target="_blank" class="ipfs-link ipfs">Ссылка на файл/каталог на сайте ipfs.io (Link to the file/directory on the site ipfs.io)</a>
 		<a target="_blank" class="hash-archive url ipfs bitprint sha1 md5 sha256">Поиск ссылки на файл/каталог на сайте hash-archive.org (Search link to the file/directory on the site hash-archive.org)</a>
+		
+		<p class="ipfs">InterPlanetary File System, межпланетная файловая система <a href="https://ipfs.io">[?]</a>:</p>
+		<a target="_blank" class="ipfs-link-http-local">Ссылка на файл/каталог на вашем локальном шлюзе IPFS (Link to the file/directory on the local IPFS gateway)</a>
+		<a target="_blank" class="ipfs-link-https-local">Ссылка на файл/каталог на вашем локальном шлюзе IPFS (Link to the file/directory on the local IPFS gateway)</a>
+		<a target="_blank" class="ipfs-link ipfs">Ссылка на файл/каталог на сайте gateway.ipfs.io (Link to the file/directory on the site gateway.ipfs.io)</a>
+
 		
 		<p>В поле ниже можно скопировать <a href="https://ru.wikipedia.org/wiki/Magnet-ссылка">магниты</a> на один и тотже файл из разних p2p клиентов (Например из: <a href="https://ru.wikipedia.org/wiki/Shareaza">Shareaza</a>, <a href="https://ru.wikipedia.org/wiki/Direct_Connect">Direct Connect</a> и <a href="https://ru.wikipedia.org/wiki/BitTorrent_(протокол)">BitTorrent</a>). Также можно скопировать туда и ed2k ссылку на тотже файл (<a href="https://ru.wikipedia.org/wiki/EDonkey2000_(сеть)">EDonkey2000(eMule)</a>). По нажатии кнопки "Конвертировать" будет создан единый магнит.</p>
 			
 		<b>Добавить параметр:</b>
-		<br /><label title="Ссылка на страницу с полным описанием файла." ><input checked="checked" type="radio" name="param" id="description_link" />страница описания (x.do)</label> <a href="http://habrahabr.ru/post/247209/">?</a>
+		<br /><label title="Ссылка на страницу с полным описанием файла." ><input checked="checked" type="radio" name="param" id="description_link" />страница описания (x.do)</label> <a href="http://habrahabr.ru/post/247209/" target="_blank">[?]</a>
 		<br /><label title="Прямая ссылка на торрент файл в интернете"><input type="radio" name="param" id="torrent_file_link" />торрент файл (fl)</label>
-		<br /><label title="Скорость с которой необходимо загружать файл для комфортного онлайн просмотра"><input type="radio" name="param" id="bitrate" />битрейт файла (br)</label> <a href="http://habrahabr.ru/post/247591/">?</a>
+		<br /><label title="Скорость с которой необходимо загружать файл для комфортного онлайн просмотра"><input type="radio" name="param" id="bitrate" />битрейт файла (br)</label> <a href="http://habrahabr.ru/post/247591/" target="_blank">[?]</a>
 		<br /><input style="width:100%" id="add_part"/>
 		<br /><button onclick="add_parametr_on_click()">Добавить</button>
-		<br /><label><input type="checkbox" id="freebase_be"/>Добавить freebase.be кеш (Add freebase.be cache)</label><a href="http://freebase.be/g2cache.php">?</a><br/><label><input type="checkbox" id="ipfs_io"/>Добавить ipfs.io Webseed (Add ipfs.io Webseed)</label><a href="https://ipfs.io">?</a><br/>
+		<br /><label><input type="checkbox" id="freebase_be"/>Добавить freebase.be кеш (Add freebase.be cache)</label> <a href="http://freebase.be/g2cache.php"  target="_blank">[?]</a><br/><label><input type="checkbox" id="ipfs_io"/>Добавить ipfs.io Webseed (Add ipfs.io Webseed)</label> <a href="https://ipfs.io" target="_blank">[?]</a><br/>
 		
 		<button onclick="make_magnet_on_click()">Конвертировать(Convert)</button>   <button onclick="example_on_click()">Вставить пример(Insert example)</button><span id="demo"> &lt;- Нажмите "Вставить пример" а потом "Конвертировать" для демонстрации работы страницы.</span>
 		<textarea rows="20" id="magnet_mix"></textarea>
@@ -986,9 +1005,17 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 								make_link("https://ed2k.shortypower.org/?hash=", file.hash.ed2k))
 						
 						if (file.hash.ipfs)
+						{
 							set_links("ipfs-link", 
-								make_link("https://ipfs.io/ipfs/", file.hash.ipfs))
-						
+								make_link("https://gateway.ipfs.io/ipfs/", file.hash.ipfs));
+								
+							set_links("ipfs-link-http-local", 
+								make_link("https://127.0.0.1:8080/ipfs/", file.hash.ipfs));
+							
+							set_links("ipfs-link-https-local", 
+								make_link("https://127.0.0.1:8443/ipfs/", file.hash.ipfs));
+						}
+
 						if (file.hash.sha1)
 							set_links("hash-archive", 
 								make_link("https://hash-archive.org/sources/magnet:?xt=urn:sha1:", file.hash.sha1.length < 40 ? base32_to_hex(file.hash.sha1): file.hash.sha1))
@@ -1100,8 +1127,8 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 				{
 					if (!file.url)
 						file.url = [];
-					file.url.push("https://ipfs.io/ipfs/"+file.hash.ipfs)
-					file.url.push("https://127.0.0.1:8080/ipfs/"+file.hash.ipfs)
+					file.url.push("http://gateway.ipfs.io/ipfs/"+file.hash.ipfs)
+					file.url.push("http://127.0.0.1:8080/ipfs/"+file.hash.ipfs)
 					ipfs_io.checked = false;
 				}
 				var magnet = full_magnet(file)
@@ -1166,5 +1193,12 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 			<a href="https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo-fullscreen.svg">https://ivan386.github.io/magnet-uri-logo/magnet-uri-logo-fullscreen.svg</a>
 		</p>
 		<script>document.body.classList.add("script")</script>
+		
+		<link rel="stylesheet" href="http://127.0.0.1:8080/ipfs/QmPLcw99QyegedCQRHxbQ71nqWrPyxFNivdNSS4R8zsyTc/ipfs-link-http-local.css" 
+		 integrity="sha384-fmwCYLopBCHt+WF80OS1gA9L+yUZ1Xt9Rwbip4d6dqMrDnK/j2vqnZ+7trhy5AFP" 
+		 crossorigin="anonymous" />
+		<link rel="stylesheet" href="https://127.0.0.1:8443/ipfs/QmPLcw99QyegedCQRHxbQ71nqWrPyxFNivdNSS4R8zsyTc/ipfs-link-https-local.css" 
+		 integrity="sha384-3W0ZycF7EqopqyicPPoZ5u41sFonkUjPQmEQyxxEiMSpu9Ig54zKE8MSLjy3MI2i" 
+		 crossorigin="anonymous" />
 	</body>
 </html>
