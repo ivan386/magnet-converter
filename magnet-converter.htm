@@ -17,8 +17,14 @@
 		<style>
 			.btih, .bitprint, .md5, .sha1, .tree_tiger, 
 			.ed2k, a#link, .urn, .url, .xurl, durl,
-			.hurn, .hurl, .hxurl, .hdurls, .ifmagnet, .collections, .ipfs, .sha256, .torrent_file_urls 
+			.hurn, .hurl, .hxurl, .hdurls, .ifmagnet, .collections, .ipfs, .sha256, .torrent_file_urls, .hturls 
 			{display: none;}
+			
+			a#link ~ [href^="magnet:?"]:before{
+				content: url(magnet-uri-logo/magnet-uri-logo-mini.svg);
+				position: relative;
+				top: 0.2em;
+			}
 			
 			a#link[href*="magnet:?"] ~ #demo,
 			a#link[href*="magnet:?"] ~ .info
@@ -244,9 +250,18 @@
 			
 			function set_sha1(sha1, file)
 			{
+				if (sha1.length > 40)
+					sha1 = sha1.substr(0,40);
+					
 				file.hash.sha1 = sha1;
 				if (!file.hash.aich && file.size && file.size <= 184320)
-					file.hash.aich = sha1;
+				{
+					if (sha1.length == 40)
+						file.hash.aich = hex_to_base32(sha1);
+					else
+						file.hash.aich = sha1;
+				}
+					
 			}
 			
 			function parse_urn(urn_name, urn_data, file)
@@ -258,7 +273,29 @@
 						set_sha1(urn_data, file);
 					break;
 					case "urn:sha256:":
-						file.hash.sha256 = urn_data;
+						if (urn_data.length > 64)
+							file.hash.sha256 = urn_data.substr(0,64);
+						else
+							file.hash.sha256 = urn_data;
+							
+						/*
+							z - base58 prefix https://github.com/multiformats/multibase/blob/master/multibase.csv
+							
+							0x01 - varint CID version https://github.com/ipld/cid
+							0x55 - varint raw binary https://github.com/multiformats/multicodec/blob/master/table.csv
+							0x12 - varint sha256 https://github.com/multiformats/multihash/blob/master/hashtable.csv
+							0x20 - varint digest size in bytes https://github.com/multiformats/unsigned-varint
+						*/
+						
+						if (!file.hash.ipfs && file.size && file.size <= 256 * 1024)
+							file.hash.ipfs = "z" + hex_to_base58( "01551220" + urn_data );
+							
+					break;
+					case "urn:md5:":
+						if (urn_data.length > 32)
+							file.hash.md5 = urn_data.substr(0,32);
+						else
+							file.hash.md5 = urn_data;
 					break;
 					case "urn:md4:":
 						file.hash.md4 = urn_data;
@@ -277,6 +314,8 @@
 					case "urn:btih:":
 						if (urn_data.length < 40)
 							file.hash.btih = base32_to_hex(urn_data);
+						else if (urn_data.length > 40)
+							file.hash.btih = urn_data.substr(0, 40);
 						else
 							file.hash.btih = urn_data;
 					break;
@@ -296,6 +335,12 @@
 							file.hash.bitprint = urn_data;
 						}
 					break;
+					case "urn:sha384:":
+						if (urn_data.length > 96)
+							urn_data = urn_data.substr(0, 96);
+					case "urn:sha512:":
+						if (urn_data.length > 128)
+							urn_data = urn_data.substr(0, 128);
 					default:
 						if (!file.urns) file.urns = [];
 						file.urns.push(urn_name+urn_data);
@@ -428,6 +473,28 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 				return magnet.join("")
 			}
 			
+			function append_xurls(magnet, amp, file){
+				var dchub = [];
+				if (file.xurl){
+					for (var i=0; i < file.xurl.length; i++){
+						if (file.xurl[i].indexOf("dchub:")==0)
+							dchub.push(file.xurl[i]);
+						else{
+							if (amp) magnet.push("&"); else amp = true;
+							magnet.push("xs=");
+							magnet.push(file.xurl[i]);
+						}
+					}
+				}
+				if (dchub.length > 0){
+					for (var i=0; i < dchub.length; i++){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("xs=")
+						magnet.push(dchub[i])
+					}
+				}
+			}
+			
 			function dc_magnet(file){
 				var magnet = ["magnet:?"]
 				if (file && file.hash && file.hash.tree_tiger) {
@@ -448,12 +515,9 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 						magnet.push(encodeURIComponent(file.description_url[i]))
 					}
 				}
-				if (file.xurl){
-					for (var i=0; i < file.xurl.length; i++){
-						magnet.push("&xs=")
-						magnet.push(file.xurl[i])
-					}
-				}
+				
+				append_xurls(magnet, true, file);
+				
 				return magnet.join("")
 			}
 			
@@ -514,7 +578,10 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 					if (file.hash.sha1 && file.hash.tree_tiger){
 						if (amp) magnet.push("&"); else amp = true;
 						magnet.push("xt=urn:bitprint:")
-						magnet.push(file.hash.sha1)
+						if (file.hash.sha1.length == 40)
+							magnet.push(hex_to_base32(file.hash.sha1));
+						else
+							magnet.push(file.hash.sha1);
 						magnet.push(".")
 						magnet.push(file.hash.tree_tiger)
 					}else if(file.hash.sha1){
@@ -562,6 +629,11 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 						if (amp) magnet.push("&"); else amp = true;
 						magnet.push("xt=urn:md4:");
 						magnet.push(file.hash.md4);
+					}
+					if (file.hash.md5){
+						if (amp) magnet.push("&"); else amp = true;
+						magnet.push("xt=urn:md5:");
+						magnet.push(file.hash.md5);
 					}
 				}
 				if (file.urns){
@@ -636,13 +708,9 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 					magnet.push("x.ed2k.p=")
 					magnet.push(file.hash_list.ed2k.join(":"))
 				}
-				if (file.xurl){
-					for (var i=0; i < file.xurl.length; i++){
-						if (amp) magnet.push("&"); else amp = true;
-						magnet.push("xs=")
-						magnet.push(file.xurl[i])
-					}
-				}
+				
+				append_xurls(magnet, amp, file);
+				
 				if ( magnet.length > 1 )
 					return magnet.join("");
 			}
@@ -685,6 +753,77 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 				})
 				
 				return hex_str.join("");
+			}
+			
+			function hex_to_base58(hex)
+			{
+				if (!hex) return "";
+				var number = 0;
+				var hex_count = 0;
+				var detector = /[a-f0-9]/gmi;
+				var base58_int = [0];
+				var base58_str = "";
+				var base58_alph = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+				var leading_zeros = true;
+				hex.replace(detector, function(letter){
+					var val = parseInt(letter, 16);
+					
+					if ( leading_zeros && val == 0 ){
+						if ( hex_count++ )
+						{
+							base58_str += base58_alph[0];
+							hex_count = 0;
+						}
+					}
+					else if( leading_zeros )
+						leading_zeros = false;
+					
+					
+					for (var i = 0; i < base58_int.length; i++ )
+					{
+						val += base58_int[i] << 4;
+						base58_int[i] = val % 58;
+						val = ( val / 58 ) | 0;
+					}
+					
+					while (val > 0)
+					{
+						base58_int.push( val % 58 );
+						val = ( val / 58 ) | 0;
+					}
+				});
+				
+				for ( var i = base58_int.length - 1; i >= 0; --i )
+					base58_str += base58_alph[base58_int[i]];
+				
+				return base58_str;
+			}
+			
+			function hex_to_base32(hex){
+				if (!hex) return "";
+				var number = 0
+				var bit_pos = 0
+				var detector = /[a-f0-9]/gmi
+				var base32_str = []
+				hex.replace(detector, function(letter){
+					var val = parseInt(letter, 16);
+					number = ((number << 4) | val) & 255
+					bit_pos += 4
+					
+					for (; bit_pos >= 5;){
+						bit_pos -= 5
+						var base32_num = (number >> bit_pos) & 31
+						
+						if (base32_num < 26)
+							base32_num += 10;
+						else
+							base32_num -= 24;
+							
+						base32_str.push(base32_num.toString(36))
+					}
+				})
+				
+				return base32_str.join("");
 			}
 
 			/* https://habrahabr.ru/post/118171/ */
@@ -899,8 +1038,12 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 					urn_list.push("urn:btih:" + file.hash.btih);
 					
 				if (file.hash.sha1 && file.hash.tree_tiger){
+					var sha1 = file.hash.sha1;
+					if (sha1.length == 40)
+						sha1 = hex_to_base32(sha1);
+						
 					urn_list.push("urn:bitprint:"+
-					file.hash.sha1+"."+file.hash.tree_tiger
+					 sha1+"."+file.hash.tree_tiger
 					)
 				}
 				
@@ -927,11 +1070,10 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 				if (file.hash.md4)
 					urn_list.push("urn:md4:"+file.hash.md4);
 					
-				if (file.urns){
+				if (file.urns)
 					file.urns.map(function(urn){
 						urn_list.push(urn)
-					})
-				}
+					});
 				
 				if ( urn_list.length > 0 )
 					return urn_list;
