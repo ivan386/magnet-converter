@@ -1,0 +1,5 @@
+a#link[href*="=urn:ipfs:"] ~ .ipfs-link-https-local,
+a#link[href*="/ipfs/"] ~ .ipfs-link-https-local
+{
+	display: list-item;
+}
