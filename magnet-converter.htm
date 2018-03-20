@@ -47,6 +47,7 @@
 			#this_page_links > a
 			{
 				display: list-item;
+				white-space: pre;
 				position: relative;
 				left: 20px;
 			}
@@ -852,7 +853,7 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 				}
 			}
 			
-			function set_urls(urls, container_id, urls_class){
+			function set_urls(urls, container_id, urls_class, file_name){
 				if (!urls) return;
 				var container = document.getElementById(container_id)
 				var new_container = document.createElement(container.tagName)
@@ -861,6 +862,17 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 					var name = document.createTextNode(try_decode(urls[i]))
 					link.href = urls[i]
 					link.className = urls_class
+					if (typeof(file_name) == "string" && file_name.length > 0)
+					{
+						switch (link.protocol)
+						{
+							case "ftp:":
+							case "http:":
+							case "https:":
+							case "data:":
+								link.download = file_name;
+						}
+					}
 					link.appendChild(name)
 					new_container.appendChild(link)
 				}
@@ -1000,7 +1012,7 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 								make_link("https://hash-archive.org/sources/magnet:?xt=urn:sha256:", file.hash.sha256))		
 								
 					}
-					set_urls(file.url,"direct_links", "url")
+					set_urls(file.url,"direct_links", "url", file.name)
 					set_urls(add_btc(file),"p2p_links", "xurl")
 					set_urls(file.collection,"p2p_collections", "collection")
 					set_urls(file.torrent_file_url,"torrent_file_urls", "torrent_file_url")
