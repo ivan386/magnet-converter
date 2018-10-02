@@ -148,6 +148,7 @@
 		<a class="shareaza_magnet bitprint tree_tiger sha1 ed2k btih">Магнит для Shareaza (Magnet for Shareaza)</a>
 		<a class="ed2k_link ed2k">Ссылка для eMule (Link for eMule)</a>
 		<a class="micro_torrent bitprint sha1">Микро-торрент (Micro Torrent)</a>
+		<a class="merkle_torrent bitprint sha1 aich">Меркла-торрент (Merkle Torrent)</a>
 		<p class="hurl">Прямые ссылки (direct links):</p>
 		<div class="hurl" id="direct_links"></div>
 		<p class="hxurl">P2P источники (p2p sources):</p>
@@ -1011,6 +1012,123 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 				}
 			}
 			
+			
+			function make_merkle_torrent(file)
+			{
+				var root_hash;
+				var aich = false;
+				
+				if (file.hash && file.size)
+				{
+					if (file.hash.aich && file.size > 180 * 1024 && file.size <= 180 * 1024 * 52)
+					{
+						aich = true;
+						root_hash = file.hash.aich;
+					}
+					else if(file.hash.sha1)
+						root_hash = file.hash.sha1;
+					else
+						return;
+				}
+				else
+					return;
+						
+				if (root_hash.length < 40)
+					root_hash = base32_to_hex(root_hash);
+				root_hash = root_hash.replace(/[0-9A-Fa-f]{2}/g,"%$&");
+				
+				if (file.name && file.size)
+				{
+					var torrent = ["data:application/x-bittorrent;,d"]
+					if (file.trackers && file.trackers.length>0)
+					{
+						torrent.push("8:announce");
+						push_string(file.trackers[0], torrent);
+						if (file.trackers.length>1)
+						{
+							torrent.push("13:announce-listl");
+							for (var i = 1; file.trackers.length>i; i++)
+							{
+								var tracker = encodeURIComponent(decodeURIComponent(file.trackers[i]));
+								push_string(tracker, torrent);
+							}
+							torrent.push("e");
+						}
+					}
+					torrent.push("4:infod");
+					torrent.push("6:length");
+					torrent.push("i");
+					torrent.push(file.size);
+					torrent.push("e");
+					torrent.push("4:name");
+					var name = encodeURIComponent(file.name);
+					push_string(name, torrent);
+					torrent.push("12:piece%20length");
+					torrent.push("i");
+					if ( aich )
+						torrent.push(180 * 1024);
+					else
+					{
+						if ( file.size <= 64 * 1024 )
+							torrent.push(64 * 1024);
+						else
+							torrent.push(file.size);
+					}
+					torrent.push("e");
+					if ( !aich )
+					{
+						torrent.push("6:pieces");
+						push_string(root_hash, torrent);
+					}
+
+					torrent.push("9:root%20hash");
+					push_string(root_hash, torrent);
+					
+					if ( !aich )
+					{
+						torrent.push("4:sha1");
+						push_string(root_hash, torrent);
+					}
+					torrent.push("e");
+					if (file.dht && file.dht.length>0)
+					{
+						torrent.push("5:nodesl");
+						for (var i = 0; file.dht.length>i; i++)
+						{
+							torrent.push("l");
+							var port_start = file.dht[i].lastIndexOf(":");
+							if (port_start > 0)
+							{
+								var port = file.dht[i].substring(port_start + 1);
+								port = parseInt(port);
+								if (port > 0)
+								{
+									var address = file.dht[i].substring(0, port_start);
+									address = encodeURIComponent(decodeURIComponent(address));
+									push_string(address, torrent);
+									torrent.push("i" + port + "e");
+									torrent.push("e");
+								}
+							}
+
+						}
+						torrent.push("e");
+					}
+					if (file.url && file.url.length>0)
+					{
+						torrent.push("8:url-listl");
+						for (var i = 0; file.url.length>i; i++)
+						{
+							var url = encodeURIComponent(decodeURIComponent(file.url[i]));
+							push_string(url, torrent);
+						}
+						torrent.push("e");
+					}
+					torrent.push("e");
+					return torrent.join("");
+				}
+			}
+			
 			function set_urls(urls, container_id, urls_class, file_name){
 				if (!urls) return;
 				var container = document.getElementById(container_id)
@@ -1118,7 +1236,7 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 					set_links("shareaza_magnet", full_magnet(file, true))
 					set_links("ed2k_link", ed2k_link(file))
 					set_links("micro_torrent", make_micro_torrent(file), file.name + ".micro.torrent")
-					
+					set_links("merkle_torrent", make_merkle_torrent(file), file.name + ".merkle.torrent");
 					if (file.hash && file.hash.ipfs)
 							set_links("hash-archive", 
 								make_link("https://hash-archive.org/sources/", file.hash.ipfs))
