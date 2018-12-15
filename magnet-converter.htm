@@ -412,6 +412,14 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 							detect_ipfs_hash(data, file);
 							break;
 						case "xs":
+							
+							var torrent_url = data.lastIndexOf(".torrent");
+							if ( !file.name || file.name.lastIndexOf(".torrent") < file.name.length - 8 )
+								if ( torrent_url > 0 && data.length - 8 == torrent_url ){
+									(file.torrent_file_url = file.torrent_file_url || []).push(data);
+									break;
+								}
+								
 							if (!file.xurl) file.xurl = [];
 							file.xurl.push(data);
 							detect_ipfs_hash(data, file);
