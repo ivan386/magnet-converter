@@ -184,9 +184,11 @@
 		<a target="_blank" class="dc_search bitprint tree_tiger">Поиск в сети DirectConnect (DC) (Search in DirectConnect)</a>
 <!--		<a target="_blank" class="bitzi_lookup bitprint sha1">Информация на Bitzi (File info from Bitzi)</a>
 -->
+		<a target="_blank" class="instant_io btih">Загрузить через (Download via) instant.io</a>
 		<a target="_blank" class="ikwyd_search btih">Информация о торренте (Torrent info) IKWYD</a>
 		<a target="_blank" class="btdigg_search btih">Информация о торренте (Torrent info) BTDIG</a>
 		<a target="_blank" class="torcache_torrent btih">Скачать торрент из хранилища торрентов (Download torrent file from torrent cache)</a>
+		
 		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k (Ed2k file statistic)</a>
 		<a target="_blank" class="hash-archive url ipfs bitprint sha1 md5 sha256">Поиск ссылки на файл/каталог на сайте hash-archive.org (Search link to the file/directory on the site hash-archive.org)</a>
 		
@@ -425,7 +427,7 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 				return file;
 			}
 			
-			function torrent_magnet(file){
+			function torrent_magnet(file, webtorrent){
 				var magnet = ["magnet:?"]
 				if (file && file.hash && file.hash.btih) {
 					magnet.push("xt=urn:btih:")
@@ -468,7 +470,10 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 				}
 				if (file.torrent_file_url){
 					for (var i=0; i < file.torrent_file_url.length; i++){
-						magnet.push("&fl=")
+						if (webtorrent)
+							magnet.push("&xs=");
+						else
+							magnet.push("&fl=");
 						magnet.push(file.torrent_file_url[i])
 					}
 				}
@@ -1274,6 +1279,8 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 										make_link("https://btdig.com/search?info_hash=", file.hash.btih))
 							set_links("torcache_torrent", 
 										make_link("https://itorrents.org/torrent/", file.hash.btih.toUpperCase()))
+							set_links("instant_io", 
+										make_link("https://instant.io/#", torrent_magnet(file, true)))
 						}
 						if (file.hash.ed2k)
 							set_links("ed2k-stats", 
