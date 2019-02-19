@@ -15,10 +15,6 @@
 		<base href="https://ivan386.github.io/magnet-converter/" />
 		
 		<style>
-			.btih, .bitprint, .md5, .sha1, .tree_tiger, 
-			.ed2k, a#link, .urn, .url, .xurl, durl,
-			.hurn, .hurl, .hxurl, .hdurls, .ifmagnet, .collections, .ipfs, .sha256, .torrent_file_urls, .hturls 
-			{display: none;}
 			
 			a#link ~ [href^="magnet:?"]:before{
 				content: url(magnet-uri-logo/magnet-uri-logo-mini.svg);
@@ -30,43 +26,21 @@
 			a#link[href*="magnet:?"] ~ .info
 			{display: none}
 			
-			a#link[href*="magnet:?"] ~ .ifmagnet{display: initial}
+			a.item{display: none}
 			
-			a#link[href*="=urn:"] ~ .hurn > a,
-			a#link[href*="=urn:btih:"] ~ .btih,
-			a#link[href*="=urn:bitprint:"] ~ .bitprint,
-			a#link[href*="=urn:sha1:"] ~ .sha1,
-			a#link[href*="=urn:sha256:"] ~ .sha256,
-			a#link[href*="=urn:tree:tiger:"] ~ .tree_tiger,
-			a#link[href*="=urn:ed2k:"] ~ .ed2k,
-			a#link[href*="=urn:ed2khash:"] ~ .ed2k,
-			a#link[href*="=urn:ipfs:"] ~ .ipfs,
-			a#link[href*="/ipfs/Qm"] ~ .ipfs,
-			a#link[href*="/ipfs/zb2rh"] ~ .ipfs,
-			a#link[href*="as="] ~ #direct_links > .url,
-			a#link[href*="ws="] ~ #direct_links > .url,
-			a#link[href*="as="] ~ .url,
-			a#link[href*="ws="] ~ .url,
-			a#link[href*="tr="] ~ .hturls > a,
-			a#link[href*="xs="] ~ #p2p_links > .xurl,
-			a#link[href*="x.do="] ~ #description_links > .durl,
-			a#link[href*="mt="] ~ #p2p_collections > .collection,
-			a#link[href*="fl="] ~ #torrent_file_urls > .torrent_file_url,
-			#this_page_links > a
+			.hurn a, .hurl a, .hxurl a, .hdurls a, .collections a, .torrent_file_urls a, .hturls a,
+			a.item[href]
 			{
 				display: list-item;
 				white-space: pre;
 				position: relative;
 				left: 20px;
 			}
+
+			a#link, .hurn, .hurl, .hxurl, .hdurls, .ifmagnet, .collections, .torrent_file_urls, .hturls
+			{display: none;}
 			
-			.ipfs-link-http-local,
-			.ipfs-link-https-local
-			{
-				display: none;
-				position: relative;
-				left: 20px;
-			}
+			a#link[href*="magnet:?"] ~ .ifmagnet{display: initial}
 			
 			a#link[href*="x.do="] ~ .hdurls,
 			a#link[href*="tr="] ~ .hturls,
@@ -95,15 +69,29 @@
 				text-decoration: none;
 				font-size: xx-large;
 			}
+			
+			a.ipfs-link-http-local,
+			a.ipfs-link-https-local
+			{
+				display: none;
+			}
+			
+			.ipfs-link-http-local,
+			.ipfs-link-https-local,
+			.ipfs-link{
+				position: relative;
+				left: 20px;
+			}
+			
 			#magnet_mix{width: 100%;}
 			
 			.script > .noscript{
 				display: none;
 			}
 			
+		</style>
+		<style>
 			#file-size{quotes: "(" ")";};
-			
-			
 		</style>
 		<script>
 			function register_magnet_handler()
@@ -143,12 +131,12 @@
 		
 		<p class="ifmagnet">Если клиент не распознал магнит попробуйте магниты ниже.</p>
 		<p class="urn">Магниты и ссылки (Magnets and links):</p>
-		<a class="torrent_magnet btih">Магнит для Торрента (Magnet for Torrent)</a>
-		<a class="dc_magnet bitprint tree_tiger">Магнит для DC++ (Magnet for DC++)</a>
-		<a class="shareaza_magnet bitprint tree_tiger sha1 ed2k btih">Магнит для Shareaza (Magnet for Shareaza)</a>
-		<a class="ed2k_link ed2k">Ссылка для eMule (Link for eMule)</a>
-		<a class="micro_torrent bitprint sha1">Микро-торрент (Micro Torrent)</a>
-		<a class="merkle_torrent bitprint sha1 aich">Меркла-торрент (Merkle Torrent)</a>
+		<a class="item torrent_magnet btih">Магнит для Торрента (Magnet for Torrent)</a>
+		<a class="item dc_magnet bitprint tree_tiger">Магнит для DC++ (Magnet for DC++)</a>
+		<a class="item shareaza_magnet bitprint tree_tiger sha1 ed2k btih">Магнит для Shareaza (Magnet for Shareaza)</a>
+		<a class="item ed2k_link ed2k">Ссылка для eMule (Link for eMule)</a>
+		<a class="item micro_torrent bitprint sha1">Микро-торрент (Micro Torrent)</a>
+		<a class="item merkle_torrent bitprint sha1 aich">Меркла-торрент (Merkle Torrent)</a>
 		<p class="hurl">Прямые ссылки (direct links):</p>
 		<div class="hurl" id="direct_links"></div>
 		<p class="hxurl">P2P источники (p2p sources):</p>
@@ -165,30 +153,30 @@
 		<div class="hurn" id="urn_links"></div>
 		<p>Ссылки на эту страницу (links to this page):</p>
 		<div id="this_page_links">
-		<a href="#magnet:?" class="full_link">полная (full link)</a>
-		<a href="/#magnet:?" class="short_link">короткая(short link)</a>
-		<a href="/#magnet?" class="short_msg_link_private">1. короткая для передачи в сообщении(short link to send in messenger)</a>
-		<a href="/magnet?" class="short_msg_link">2. короткая для передачи в сообщении(short link to send in messenger)</a>
-		<a href="http://magn.tk#magnet:?" class="shorter_link">короче(shorter link)</a>
-		<a href="http://магнит.tk#magnet:?" class="shorter_ru_link">короче но по русски(shorter link on russian domain)</a>
-		<a href="http://м.tk#magnet:?" class="shortest_ru_link">коротко по русски(shortest link on russian domain)</a>
-		<a href="https://magnet-xt-urn.tk#magnet:?" class="magic_link">магическая ссылка(magic link)</a>
-		
+		<a href="" class="item full_link">полная (full link)</a>
+		<a href="/" class="item short_link">короткая(short link)</a>
+		<a class="item short_msg_link_private">1. короткая для передачи в сообщении(short link to send in messenger)</a>
+		<a class="item short_msg_link">2. короткая для передачи в сообщении(short link to send in messenger)</a>
+		<a href="http://magn.tk" class="item shorter_link">короче(shorter link)</a>
+		<a href="http://м.tk" class="item shortest_ru_link">коротко по русски(shortest link on russian domain)</a>
+		<a href="https://magnet-xt-urn.tk" class="item magic_link">магическая ссылка(magic link)</a>
 		</div>
 		
 		
 		<p class="hurn hurl">Сторонние сервисы (Third-party services):</p>
 		
-		<a target="_blank" class="virus_check bitprint sha1 md5 sha256">Проверка на вирусы (Virus check)</a>
+		<a target="_blank" class="item virus_check bitprint sha1 md5 sha256">Проверка на вирусы (Virus check)</a>
 
-		<a target="_blank" class="dc_search bitprint tree_tiger">Поиск в сети DirectConnect (DC) (Search in DirectConnect)</a>
+		<a target="_blank" class="item dc_search bitprint tree_tiger">Поиск в сети DirectConnect (DC) (Search in DirectConnect)</a>
 <!--		<a target="_blank" class="bitzi_lookup bitprint sha1">Информация на Bitzi (File info from Bitzi)</a>
 -->
-		<a target="_blank" class="ikwyd_search btih">Информация о торренте (Torrent info) IKWYD</a>
-		<a target="_blank" class="btdigg_search btih">Информация о торренте (Torrent info) BTDIG</a>
-		<a target="_blank" class="torcache_torrent btih">Скачать торрент из хранилища торрентов (Download torrent file from torrent cache)</a>
-		<a target="_blank" class="ed2k-stats ed2k">Статистика ed2k (Ed2k file statistic)</a>
-		<a target="_blank" class="hash-archive url ipfs bitprint sha1 md5 sha256">Поиск ссылки на файл/каталог на сайте hash-archive.org (Search link to the file/directory on the site hash-archive.org)</a>
+		<a target="_blank" class="item instant_io btih">Загрузить через (Download via) instant.io</a>
+		<a target="_blank" class="item btdigg_search btih">Информация о торренте (Torrent info) BTDIG</a>
+		<a target="_blank" class="item ikwyd_search btih">Информация о торренте (Torrent info) IKWYD</a>
+		<a target="_blank" class="item torcache_torrent btih">Скачать торрент из хранилища торрентов (Download torrent file from torrent cache)</a>
+		
+		<a target="_blank" class="item ed2k-stats ed2k">Статистика ed2k (Ed2k file statistic)</a>
+		<a target="_blank" class="item hash-archive url ipfs bitprint sha1 md5 sha256">Поиск ссылки на файл/каталог на сайте hash-archive.org (Search link to the file/directory on the site hash-archive.org)</a>
 		
 		<p class="ipfs">InterPlanetary File System, межпланетная файловая система <a href="https://ipfs.io">[?]</a>:</p>
 		<a target="_blank" class="ipfs-link-http-local">Ссылка на файл/каталог на вашем локальном шлюзе IPFS (Link to the file/directory on the local IPFS gateway)</a>
@@ -410,6 +398,14 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 							detect_ipfs_hash(data, file);
 							break;
 						case "xs":
+							
+							var torrent_url = data.lastIndexOf(".torrent");
+							if ( !file.name || file.name.lastIndexOf(".torrent") < file.name.length - 8 )
+								if ( torrent_url > 0 && data.length - 8 == torrent_url ){
+									(file.torrent_file_url = file.torrent_file_url || []).push(data);
+									break;
+								}
+								
 							if (!file.xurl) file.xurl = [];
 							file.xurl.push(data);
 							detect_ipfs_hash(data, file);
@@ -425,7 +421,7 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 				return file;
 			}
 			
-			function torrent_magnet(file){
+			function torrent_magnet(file, webtorrent){
 				var magnet = ["magnet:?"]
 				if (file && file.hash && file.hash.btih) {
 					magnet.push("xt=urn:btih:")
@@ -468,7 +464,10 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 				}
 				if (file.torrent_file_url){
 					for (var i=0; i < file.torrent_file_url.length; i++){
-						magnet.push("&fl=")
+						if (webtorrent)
+							magnet.push("&xs=");
+						else
+							magnet.push("&fl=");
 						magnet.push(file.torrent_file_url[i])
 					}
 				}
@@ -718,13 +717,19 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 			}
 			
 			function set_links(class_name, href, download){
-				if (href){
-					var links = document.getElementsByClassName(class_name)
-					for (var i=0; i < links.length; i++)
+				var links = document.getElementsByClassName(class_name)
+				for (var i=0; i < links.length; i++)
+				{
+					if (href)
 					{
-						links[i].setAttribute("href", href)
+						links[i].setAttribute("href", href);
 						if (download)
-							links[i].setAttribute("download", download)
+							links[i].setAttribute("download", download);
+					}
+					else
+					{
+						links[i].removeAttribute("href");
+						links[i].removeAttribute("download");
 					}
 				}
 			}
@@ -870,7 +875,10 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 				var hre = /https?:\/\/[^\s#]*\/([^\s\/&:#?]*)[&?]?[^\s\/#]*/gmi
 				var dre = /dchub:\/\/[\S]+/gmi
 				var urnre = /(urn:([a-z0-9\/\.]+:)*)([^&\s]+)/gmi
-				var ipfshre = /(zb2rh|Qm)[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{44}/gm
+				var ipfshre = /(^|[^0-9A-Za-z])((zb2rh|Qm)[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{44})([^0-9A-Za-z]|$)/gm
+				var sha1re = /(^|[^0-9A-Za-z])([0123456789ABCDEF]{40}|[0123456789abcdef]{40})([^0-9A-Za-z]|$)/gm
+				var tthre = /(^|[^0-9A-Za-z])([A-Z2-7]{39}|[a-z2-7]{39})([^0-9A-Za-z]|$)/gm
+				var md4re = /(^|[^0-9A-Za-z])([0123456789ABCDEF]{32}|[0123456789abcdef]{32})([^0-9A-Za-z]|$)/gm
 				var file = {}
 				text.replace(ere, function(all, name, size, hash, params, sources){
 					file.name = try_decode(name);
@@ -915,10 +923,34 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 					console.log(urn_name, urn_data);
 					parse_urn(urn_name, urn_data, file);
 					return "";
-				}).replace(ipfshre, function (ipfs){
+				}).replace(ipfshre, function (_, b, ipfs, e){
 					console.log(ipfs);
-					(file.hash = file.hash || {}).ipfs = ipfs;
-					return "";
+					var hash = (file.hash = file.hash || {})
+					if ( typeof(hash.ipfs) == "undefined" )
+						hash.ipfs = ipfs;
+					return b+" "+e;
+				}).replace(sha1re, function (_, b, sha1, e){
+					console.log(sha1);
+					var hash = (file.hash = file.hash || {})
+					if ( typeof(hash.btih) == "undefined" )
+						hash.btih = sha1;
+					if ( typeof(hash.sha1) == "undefined" )
+						set_sha1(sha1, file);
+					return b+" "+e;
+				}).replace(tthre, function (_, b, tree_tiger, e){
+					console.log(tree_tiger);
+					var hash = (file.hash = file.hash || {})
+					if ( typeof(hash.tree_tiger) == "undefined" )
+						hash.tree_tiger = tree_tiger;
+					return b+" "+e;
+				}).replace(md4re, function (_, b, md4, e){
+					console.log(md4);
+					var hash = (file.hash = file.hash || {})
+					if ( typeof(hash.ed2k) == "undefined" )
+						hash.ed2k = md4;
+					if ( typeof(hash.md4) == "undefined" )
+						hash.md4 = md4;
+					return b+" "+e;
 				});
 				return file
 			}
@@ -1230,7 +1262,7 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 				if(file){
 					document.getElementById("file-name").textContent = file.name
 					document.getElementById("file-size").textContent = file.size
-					document.title = (file.name || "") + " " + (title || "")
+					document.title = (file.name || "") + " " + (title || "#")
 					set_links("torrent_magnet", torrent_magnet(file))
 					set_links("dc_magnet", dc_magnet(file))
 					set_links("shareaza_magnet", full_magnet(file, true))
@@ -1274,6 +1306,8 @@ https://github.com/arvidn/libtorrent/blob/cdf066c4e152d83e6fe0facedb3c437b8b4a21
 										make_link("https://btdig.com/search?info_hash=", file.hash.btih))
 							set_links("torcache_torrent", 
 										make_link("https://itorrents.org/torrent/", file.hash.btih.toUpperCase()))
+							set_links("instant_io", 
+										make_link("https://instant.io/#", torrent_magnet(file, true)))
 						}
 						if (file.hash.ed2k)
 							set_links("ed2k-stats", 
